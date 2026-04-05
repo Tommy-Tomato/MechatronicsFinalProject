@@ -583,5 +583,5 @@ void pingDistancecm() {
   delayMicroseconds(10);
   digitalWrite(trig_signal, LOW);
   pulseDuration = pulseIn(echo_signal, HIGH, 30000);
-  if (pulseDuration > 0) distancecm = pulseDuration / 58.0;
+  if (pulseDuration > 0) distancecm = pulseDuration / 58.1;
 }
