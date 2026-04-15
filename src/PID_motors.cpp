@@ -1,159 +1,160 @@
-#include <Adafruit_BNO055.h>
-#include <DualMAX14870MotorShield.h>
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
+#include "PID_motors.h"
 
-// FUNCTIONS
-void init() {
-    // Capture starting yaw as heading reference
-  sensors_event_t orientationData;
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  setpoint = orientationData.orientation.x;
+// ================= CONSTRUCTOR =================
+Motor::Motor() : bno(55, 0x28, &Wire) {
+    // PID gains
+    Kp = 4.5;
+    Ki = 0.08;
+    Kd = 1.5;
+
+    // PID state
+    setpoint = 0;
+    error = 0;
+    previousError = 0;
+    integral = 0;
+    derivative = 0;
+
+    previousTime = 0;
+
+    // Motion
+    baseSpeed = 120;
+
+    // Turning
+    turnGoalYaw = 0;
+    turning = false;
+    turnStartTime = 0;
+}
+
+// ================= INITIALIZATION =================
+void Motor::initMotors() {
+    motors.enableDrivers();
+    delay(1000);
+
+    // Capture initial heading
+    setpoint = getYaw();
+    previousTime = millis();
+}
+
+// ================= HELPER FUNCTIONS =================
+double Motor::getYaw() {
+    sensors_event_t event;
+    bno.getEvent(&event, Adafruit_BNO055::VECTOR_EULER);
+    return event.orientation.x;
+}
+
+double Motor::angleDiff(double target, double current) {
+    double diff = target - current;
+    if (diff > 180) diff -= 360;
+    if (diff < -180) diff += 360;
+    return diff;
 }
 
 
-// ================= PID VARIABLES =================
-double setpoint = 0.0; // desired yar (captured at startup)
+// ================= PID CONTROL =================
+void Motor::PID_control() {
+    double yaw = getYaw();
 
-double Kp = 4.5;
-double Ki = 0.08;
-double Kd = 1.5;
+    unsigned long currentTime = millis();
+    double dt = (currentTime - previousTime) / 1000.0;
 
-double error = 0;
-double previousError = 0;
-double integral = 0;
-double derivative = 0;
+    if (dt > 0.1) dt = 0.1;
+    if (dt <= 0) {
+        previousTime = currentTime;
+        return;
+    }
 
-unsigned long previousTime = 0;
-unsigned long lastPIDPrint = 0;
-
-// forward driving speed
-int baseSpeed = 120;
-
-// ================= TURNING VARIABLES =================
-double turnGoalYaw = 0;
-bool turning = false;
-
-unsigned long turnStartTime = 0;
-const unsigned long turnTimeout = 3000; // timeout if turn takes too long
-
-// Base turn speed
-const int TURN_BASE_SPEED = 105;
-
-// Helper functions for turning
-double getYaw() {
-  sensors_event_t orientationData;
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  return orientationData.orientation.x;
-}
-
-double angleDiff(double target, double current) {
-  double diff = target - current;
-  if (diff > 180) diff -= 360;
-  if (diff < -180) diff += 360;
-  return diff;
-}
-
-// Reset heading
-void resetPIDHeading() {
-  sensors_event_t orientationData;
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  
-  setpoint = orientationData.orientation.x;
-  
-  error = 0;
-  previousError = 0;
-  integral = 0;
-  derivative = 0;
-  previousTime = millis();
-  
-  delay(50);
-}
-
-void PID_control() {
-  sensors_event_t orientationData;
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  
-  double yaw = orientationData.orientation.x;
-  
-  unsigned long currentTime = millis();
-  double dt = (currentTime - previousTime) / 1000.0;
-  
-  if (dt > 0.1) dt = 0.1;
-  if (dt <= 0) {
     previousTime = currentTime;
-    return;
-  }
-  
-  previousTime = currentTime;
-  
-  error = setpoint - yaw;
-  
-  if (error > 180) error -= 360;
-  if (error < -180) error += 360;
-  
-  integral += error * dt;
-  integral = constrain(integral, -50, 50);
-  
-  derivative = (error - previousError) / dt;
-  derivative = constrain(derivative, -100, 100);
-  
-  double correction = (Kp * error) + (Ki * integral) + (Kd * derivative);
-  correction = constrain(correction, -80, 80);
-  
-  previousError = error;
-  
-  int leftSpeed = baseSpeed + correction;
-  int rightSpeed = baseSpeed - correction;
-  
-  leftSpeed = constrain(leftSpeed, -300, 300);
-  rightSpeed = constrain(rightSpeed, -300, 300);
-  
-  // Apply speeds directly without extra negatives
-  motors.setM2Speed(-leftSpeed); // M2 is left motor
-  motors.setM1Speed(rightSpeed); // M1 is right motor
+
+    error = angleDiff(setpoint, yaw);
+
+    integral += error * dt;
+    integral = constrain(integral, -50, 50);
+
+    derivative = (error - previousError) / dt;
+    derivative = constrain(derivative, -100, 100);
+
+    double correction = (Kp * error) + (Ki * integral) + (Kd * derivative);
+    correction = constrain(correction, -80, 80);
+
+    previousError = error;
+
+    int leftSpeed = baseSpeed + correction;
+    int rightSpeed = baseSpeed - correction;
+
+    leftSpeed = constrain(leftSpeed, -300, 300);
+    rightSpeed = constrain(rightSpeed, -300, 300);
+
+    // Apply speeds
+    motors.setM2Speed(-leftSpeed); // left motor
+    motors.setM1Speed(rightSpeed); // right motor
 }
 
-// Improved turn control with speed scaling (slow when closer to target)
-void performTurn(double targetYaw) {
-  double currentYaw = getYaw();
-  double remaining = angleDiff(targetYaw, currentYaw);
-  
-  // Target angle reached check
-  if (abs(remaining) < 3.0) {
-    stopMotors();
-    turning = false;
-    delay(80);
-    resetPIDHeading();
-    delay(30);
-    setState(FORWARD);
-    return;
-  }
-  
-  // Timeout check
-  if (millis() - turnStartTime > turnTimeout) {
-    stopMotors();
-    turning = false;
-    delay(80);
-    resetPIDHeading();
-    delay(30);
-    setState(FORWARD);
-    return;
-  }
-  
-  // Speed scaling
-  int currentSpeed = TURN_BASE_SPEED;
-  if (abs(remaining) < 10) {
-    currentSpeed = TURN_BASE_SPEED * 0.6;  // Only slow down in last 10 degrees
-  }
-  
-  currentSpeed = max(currentSpeed, 50);
-  
-  // Apply motor speeds based on turn direction
-  if (remaining > 0) {  // Turn right
-    motors.setM1Speed(-currentSpeed);
-    motors.setM2Speed(-currentSpeed);
-  } else {  // Turn left
-    motors.setM1Speed(currentSpeed);
-    motors.setM2Speed(currentSpeed);
-  }
+void Motor::update() {
+    PID_control();
+}
+
+// ================= RESET HEADING =================
+void Motor::resetPIDHeading() {
+    setpoint = getYaw();
+
+    error = 0;
+    previousError = 0;
+    integral = 0;
+    derivative = 0;
+
+    previousTime = millis();
+
+    delay(50);
+}
+
+// ================= TURN CONTROL =================
+void Motor::setTurn(double targetYaw) {
+    double currentYaw = getYaw();
+    double remaining = angleDiff(targetYaw, currentYaw);
+
+    const int TURN_BASE_SPEED = 105;
+    const unsigned long turnTimeout = 3000;
+
+    // Check if finished
+    if (abs(remaining) < 3.0) {
+        stopMotors();
+        turning = false;
+        delay(80);
+        resetPIDHeading();
+        delay(30);
+        return;
+    }
+
+    // Timeout safety
+    if (millis() - turnStartTime > turnTimeout) {
+        stopMotors();
+        turning = false;
+        delay(80);
+        resetPIDHeading();
+        delay(30);
+        return;
+    }
+
+    // Speed scaling
+    int currentSpeed = TURN_BASE_SPEED;
+    if (abs(remaining) < 10) {
+        currentSpeed = TURN_BASE_SPEED * 0.6;
+    }
+
+    currentSpeed = max(currentSpeed, 50);
+
+
+    if (remaining > 0) {  // turn right
+        motors.setM1Speed(-currentSpeed);
+        motors.setM2Speed(currentSpeed);
+    } else {              // turn left
+        motors.setM1Speed(currentSpeed);
+        motors.setM2Speed(-currentSpeed);
+    }
+}
+
+// ================= STOP =================
+void Motor::stopMotors() {
+    motors.setM1Speed(0);
+    motors.setM2Speed(0);
 }

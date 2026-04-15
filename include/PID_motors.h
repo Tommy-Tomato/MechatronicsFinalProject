@@ -25,15 +25,15 @@ private:
     // Helpers
     double getYaw();
     double angleDiff(double target, double current);
+    void PID_control();
+    void resetPIDHeading();
 
 public:
     Motor();
 
     void initMotors();
-    void resetPIDHeading();
-    void PID_control();
-
-    void performTurn(double targetYaw);
+    void forwards();
+    void Turn(double targetYaw);
     void stopMotors();
 };
 
