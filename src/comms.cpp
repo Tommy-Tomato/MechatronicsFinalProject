@@ -2,6 +2,42 @@
 // unedited code from lab 4
 // variables incorrect
 
+// Left goal 
+const int GOAL_LEFT_X = 0;
+const int GOAL_LEFT_Y = 52.5;
+
+// Right goal 
+const int GOAL_RIGHT_X = 210;
+const int GOAL_RIGHT_Y = 52.5;
+
+// ==WHICH GOAL- EDIT
+bool attackRight = true;
+
+int targetGoalX;
+int targetGoalY;
+
+// Set target goal
+void updateTargetGoal() {
+  if (attackRight) {
+    targetGoalX = GOAL_RIGHT_X;
+    targetGoalY = GOAL_RIGHT_Y;
+  } else {
+    targetGoalX = GOAL_LEFT_X;
+    targetGoalY = GOAL_LEFT_Y;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+// =========================
 
 // ===== XBee POSITION GATES =====
 const int START_X_MIN = 45;
@@ -29,13 +65,6 @@ unsigned long lastRxTime = 0;
 
 #define ROBOT_ID 'D'
 
-// ================= LOOP =================
-void loop()
-{
-
-  updateXBeePosition();
-}
-
 
 // ===== XBEE FUNCTIONS =====
 // boolean to check if inside given coordinates
@@ -43,17 +72,6 @@ bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
   return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
 }
 
-// boolean to check whether within start zone
-bool atStartZone() {
-  return xbeeHasValidPosition &&
-         inBox(xPos, yPos, START_X_MIN, START_X_MAX, START_Y_MIN, START_Y_MAX);
-}
-
-// boolean to check whether within end zone
-bool atEndZone() {
-  return xbeeHasValidPosition &&
-         inBox(xPos, yPos, END_X_MIN, END_X_MAX, END_Y_MIN, END_Y_MAX);
-}
 
 int extractDigits(const char* buf, int len, int &pos, int numDigits) {
   int value = 0;
