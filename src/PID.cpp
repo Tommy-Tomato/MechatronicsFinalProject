@@ -1,3 +1,7 @@
+#include <Adafruit_BNO055.h>
+#include <DualMAX14870MotorShield.h>
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
+
 // FUNCTIONS
 void init() {
     // Capture starting yaw as heading reference
