@@ -1,6 +1,7 @@
 // NEED TO FIX
 // unedited code from lab 4
 // variables incorrect
+#include <Arduino.h>
 
 // Left goal 
 const int GOAL_LEFT_X = 0;
