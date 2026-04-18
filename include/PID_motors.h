@@ -32,9 +32,9 @@ public:
     Motor();
 
     void initMotors();
-    void forwards();
-    void Turn(double targetYaw);
+    void setTurn(double targetYaw);
     void stopMotors();
+    void update();
 };
 
 #endif
