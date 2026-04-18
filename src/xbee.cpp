@@ -1,80 +1,50 @@
 // NEED TO FIX
 // unedited code from lab 4
 // variables incorrect
-#include <Arduino.h>
 
-// Left goal 
-const int GOAL_LEFT_X = 0;
-const int GOAL_LEFT_Y = 52.5;
+// ===== XBee POSITION GATES ===== DO WE STILL NEED THESE?
+//const int START_X_MIN = 45;
+//const int START_X_MAX = 53;
+//const int START_Y_MIN = 2;
+//const int START_Y_MAX = 15;
 
-// Right goal 
-const int GOAL_RIGHT_X = 210;
-const int GOAL_RIGHT_Y = 52.5;
+//const int END_X_MIN = 86;
+//const int END_X_MAX = 100;
+//const int END_Y_MIN = 18;
+//const int END_Y_MAX = 33;
 
-// ==WHICH GOAL- EDIT
-bool attackRight = true;
+//MOVED VARIABLES TO INTERFACE (xbee.h)
+#include "xbee.h"
 
-int targetGoalX;
-int targetGoalY;
+xbee::xbee() {
 
-// Set target goal
-void updateTargetGoal() {
-  if (attackRight) {
-    targetGoalX = GOAL_RIGHT_X;
-    targetGoalY = GOAL_RIGHT_Y;
-  } else {
-    targetGoalX = GOAL_LEFT_X;
-    targetGoalY = GOAL_LEFT_Y;
-  }
 }
 
 
 
 
+// Set target goal
+    void xbee::updateTargetGoal(bool attackRight) {
+    if (attackRight) {
+        targetGoal[1] = GOAL_RIGHT[1];
+        targetGoal[2] = GOAL_RIGHT[2];
+    } else {
+        targetGoal[1] = GOAL_LEFT[1];
+        targetGoal[2] = GOAL_LEFT[2];
+    }
+    }
 
 
 
+// HELPERS
 
-
-
-
-// =========================
-
-// ===== XBee POSITION GATES =====
-const int START_X_MIN = 45;
-const int START_X_MAX = 53;
-const int START_Y_MIN = 2;
-const int START_Y_MAX = 15;
-
-const int END_X_MIN = 86;
-const int END_X_MAX = 100;
-const int END_Y_MIN = 18;
-const int END_Y_MAX = 33;
-
-bool xbeeHasValidPosition = false;
-bool mazeStarted = false;
-bool mazeFinished = false;
-
-// latest position from Xbee
-int xPos = 0;
-int yPos = 0;
-
-char rxBuffer[128];
-int rxIndex = 0;
-unsigned long lastRxTime = 0;
-#define RX_TIMEOUT_MS 5
-
-#define ROBOT_ID 'D'
-
-
-// ===== XBEE FUNCTIONS =====
 // boolean to check if inside given coordinates
-bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
+bool xbee::inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
   return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
 }
 
 
-int extractDigits(const char* buf, int len, int &pos, int numDigits) {
+int xbee::extractDigits(const char* buf, int len, int &pos, int numDigits) {
   int value = 0;
   for (int i = 0; i < numDigits; i++) {
     if (pos >= len) return -1;
@@ -85,7 +55,7 @@ int extractDigits(const char* buf, int len, int &pos, int numDigits) {
   return value;
 }
 
-bool parseBroadcast(const char* buf) {
+bool xbee::parseBroadcast(const char* buf) {
   int len = strlen(buf);
   if (len < 13) return false;
   if (buf[0] != '>') return false;
@@ -126,8 +96,8 @@ bool parseBroadcast(const char* buf) {
     if (ry < 0) return false;
 
     if (robotLetter == ROBOT_ID) {
-      xPos = rx;
-      yPos = ry;
+      currPosition[0] = rx;
+      currPosition[1] = ry;
       foundSelf = true;
     }
   }
@@ -135,7 +105,7 @@ bool parseBroadcast(const char* buf) {
   return foundSelf;
 }
 
-void processXBeeMessage() {
+void xbee::processXBeeMessage() {
   if (rxIndex == 0) return;
 
   rxBuffer[rxIndex] = '\0';
@@ -143,15 +113,15 @@ void processXBeeMessage() {
   if (parseBroadcast(rxBuffer)) {
     xbeeHasValidPosition = true;
     Serial.print("XBee position: ");
-    Serial.print(xPos);
+    Serial.print(currPosition[0]);
     Serial.print(", ");
-    Serial.println(yPos);
+    Serial.println(currPosition[1]);
   }
 
   rxIndex = 0;
 }
 
-void updateXBeePosition() {
+void xbee::updateXBeePosition() {
   while (Serial1.available()) {
     char c = Serial1.read();
     lastRxTime = millis();
@@ -178,4 +148,34 @@ void updateXBeePosition() {
   if (rxIndex > 0 && (millis() - lastRxTime >= RX_TIMEOUT_MS)) {
     processXBeeMessage();
   }
+}
+
+//PUBLIC FUNCTIONS
+bool xbee::gameStarted() {
+  //TODO
+  return false;
+}
+
+bool xbee::inBox() {
+  //TODO
+  return false;
+}
+
+double xbee::currentPosition() {
+  //TODO
+  return 0;
+}
+
+double xbee::opponentPosition() {
+  //TODO
+  return 0;
+}
+
+double xbee::LeftGoalPosition() {
+  //TODO
+  return 0;
+}
+double xbee::rightGoalPosition() {
+  //TODO
+  return 0;
 }
