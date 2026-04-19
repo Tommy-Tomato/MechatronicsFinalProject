@@ -1,7 +1,8 @@
 #include <Arduino.h>
 #include "PID_motors.h"
+#include <Pixy2.h>
 
-const int SIG_ORANGE = 1; // change signature later
+const int SIG_ORANGE = 1;
 const int CAM_CENTER_X = 158;
 
 const int SEARCH_SPEED = 25;  // searching for puck
@@ -13,6 +14,21 @@ int orangeX = 0;
 
 bool orangeSeen = false;
 int orangeX = 0;
+
+// bool for seeing orange
+bool detectOrange() {
+  pixy.ccc.getBlocks();
+  orangeSeen = false;
+
+  for (int i = 0; i < pixy.ccc.numBlocks; i++) {
+    if (pixy.ccc.blocks[i].m_signature == SIG_ORANGE) {
+      orangeSeen = true;
+      orangeX = pixy.ccc.blocks[i].m_x;
+      return true;
+    }
+  }
+  return false;
+}
 
 Motor motor;
 
@@ -27,27 +43,21 @@ void updateStateMachine() {
     case CHASE_PUCK: stateChasePuck(); break;
   }
 }
-  
-  // Obstacle avoidance
-  if (distancecm > 0 && distancecm < 5) {
-    // Double-check we're not seeing a marker right in front
-    if (!seesAnyMarker || (seesAnyMarker && distancecm < 2)) {
-      setState(REVERSE);
-      return;
-    }
-  }
-
   // Normal forward driving with PID control
   PID_control();
   delay(20);
-}
 
-void stateStopped() {
+void stateIDLE() {
   stopMotors();
+
+  if (!mazeStarted && atStartZone()) {
+    mazeStarted = true;
+    resetPIDHeading();
+    setState(FORWARD);
+  }
 }
 
 void stateChasePuck() {
-
   if (!detectOrange()) {
     // no puck? :( rotate that ho
     motors.setM1Speed(SEARCH_SPEED);
