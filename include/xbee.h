@@ -7,8 +7,6 @@ private:
     double targetGoal[2];
 
     bool xbeeHasValidPosition = false;
-    bool mazeStarted = false;
-    bool mazeFinished = false;
 
     // latest position from Xbee
     double currPosition[2];
