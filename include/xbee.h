@@ -27,6 +27,7 @@ private:
 public:
     xbee();
 
+    void startup();
     bool gameStarted();
     void updateXBeePosition();
     bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax);
