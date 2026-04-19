@@ -158,7 +158,7 @@ bool xbee::gameStarted() {
 
 const double* xbee::currentPosition() {
   //TODO
-  return 0;
+  return currPosition;
 }
 
 const double* xbee::opponentPosition() {
