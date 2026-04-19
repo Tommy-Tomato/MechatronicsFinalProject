@@ -156,26 +156,21 @@ bool xbee::gameStarted() {
   return false;
 }
 
-bool xbee::inBox() {
+const double* xbee::currentPosition() {
   //TODO
-  return false;
+  return currPosition;
 }
 
-double xbee::currentPosition() {
-  //TODO
-  return 0;
-}
-
-double xbee::opponentPosition() {
+const double* xbee::opponentPosition() {
   //TODO
   return 0;
 }
 
-double xbee::LeftGoalPosition() {
+const double* xbee::LeftGoalPosition() {
   //TODO
-  return 0;
+  return GOAL_LEFT;
 }
-double xbee::rightGoalPosition() {
+const double* xbee::rightGoalPosition() {
   //TODO
-  return 0;
+  return GOAL_RIGHT;
 }
