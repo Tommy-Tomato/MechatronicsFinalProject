@@ -2,7 +2,7 @@
 // unedited code from lab 4
 // variables incorrect
 #include <Arduino.h>
-#include <Pixy2.h>
+
 
 
 // Left goal 
@@ -184,4 +184,3 @@ void updateXBeePosition() {
 
 //=========================
 // pixy
-Pixy2 pixy;
