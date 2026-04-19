@@ -17,7 +17,12 @@
 #include "xbee.h"
 
 xbee::xbee() {
-
+    rxIndex = 0;
+    lastRxTime = 0;
+    currPosition[0] = 0;
+    currPosition[1] = 0;
+    targetGoal[0] = 0;
+    targetGoal[1] = 0;
 }
 
 
@@ -151,6 +156,17 @@ void xbee::updateXBeePosition() {
 }
 
 //PUBLIC FUNCTIONS
+void xbee::startup() {
+    Serial.begin(115200);     // USB debug
+    Serial1.begin(9600);      // XBee communication
+
+    rxIndex = 0;
+    lastRxTime = millis();
+
+    Serial.println("XBee initialized");
+}
+
+
 bool xbee::gameStarted() {
   //TODO
   return false;
