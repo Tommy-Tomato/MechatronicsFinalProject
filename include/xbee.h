@@ -20,20 +20,21 @@ private:
     #define ROBOT_ID 'D'
 
     void updateTargetGoal(bool attackRight);
-    bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax);
+
     int extractDigits(const char* buf, int len, int &pos, int numDigits);
     bool parseBroadcast(const char* buf);
     void processXBeeMessage();
-    void updateXBeePosition();
+    
 
 public:
     xbee();
 
     bool gameStarted();
-    bool inBox();
-    double currentPosition();
-    double opponentPosition();
-    double LeftGoalPosition();
-    double rightGoalPosition();
+    void updateXBeePosition();
+    bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax);
+    const double* currentPosition();
+    const double* opponentPosition();
+    const double* LeftGoalPosition();
+    const double* rightGoalPosition();
 };
 
