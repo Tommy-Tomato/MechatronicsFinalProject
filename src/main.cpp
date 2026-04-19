@@ -10,6 +10,6 @@ void setup() {
 }
 
 void loop() {
- double Position[2] = comms.currentPosition();
+ const double* Position = comms.currentPosition();
  Serial.println(Position[1]);
 }

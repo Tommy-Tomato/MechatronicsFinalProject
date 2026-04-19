@@ -1,40 +1,82 @@
 // NEED TO FIX
 // unedited code from lab 4
 // variables incorrect
+#include <Arduino.h>
+#include <Pixy2.h>
 
 
-//MOVED VARIABLES TO INTERFACE (xbee.h)
-#include "xbee.h"
+// Left goal 
+const int GOAL_LEFT_X = 0;
+const int GOAL_LEFT_Y = 52.5;
 
-xbee::xbee() {
+// Right goal 
+const int GOAL_RIGHT_X = 210;
+const int GOAL_RIGHT_Y = 52.5;
 
+// ==WHICH GOAL- EDIT
+bool attackRight = true;
+
+int targetGoalX;
+int targetGoalY;
+
+// Set target goal
+void updateTargetGoal() {
+  if (attackRight) {
+    targetGoalX = GOAL_RIGHT_X;
+    targetGoalY = GOAL_RIGHT_Y;
+  } else {
+    targetGoalX = GOAL_LEFT_X;
+    targetGoalY = GOAL_LEFT_Y;
+  }
 }
 
 
 
 
-// Set target goal
-    void xbee::updateTargetGoal(bool attackRight) {
-    if (attackRight) {
-        targetGoal[1] = GOAL_RIGHT[1];
-        targetGoal[2] = GOAL_RIGHT[2];
-    } else {
-        targetGoal[1] = GOAL_LEFT[1];
-        targetGoal[2] = GOAL_LEFT[2];
-    }
-    }
 
 
 
-// HELPERS
 
+
+
+
+// =========================
+
+// ===== XBee POSITION GATES =====
+const int START_X_MIN = 45;
+const int START_X_MAX = 53;
+const int START_Y_MIN = 2;
+const int START_Y_MAX = 15;
+
+const int END_X_MIN = 86;
+const int END_X_MAX = 100;
+const int END_Y_MIN = 18;
+const int END_Y_MAX = 33;
+
+bool xbeeHasValidPosition = false;
+bool mazeStarted = false;
+bool mazeFinished = false;
+
+// latest position from Xbee
+int xPos = 0;
+int yPos = 0;
+
+char rxBuffer[128];
+int rxIndex = 0;
+unsigned long lastRxTime = 0;
+#define RX_TIMEOUT_MS 5
+
+#define ROBOT_ID 'D'
+
+
+// ===== XBEE FUNCTIONS =====
 // boolean to check if inside given coordinates
-bool xbee::inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
+bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
   return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
 }
 
 
-int xbee::extractDigits(const char* buf, int len, int &pos, int numDigits) {
+int extractDigits(const char* buf, int len, int &pos, int numDigits) {
   int value = 0;
   for (int i = 0; i < numDigits; i++) {
     if (pos >= len) return -1;
@@ -45,7 +87,7 @@ int xbee::extractDigits(const char* buf, int len, int &pos, int numDigits) {
   return value;
 }
 
-bool xbee::parseBroadcast(const char* buf) {
+bool parseBroadcast(const char* buf) {
   int len = strlen(buf);
   if (len < 13) return false;
   if (buf[0] != '>') return false;
@@ -86,8 +128,8 @@ bool xbee::parseBroadcast(const char* buf) {
     if (ry < 0) return false;
 
     if (robotLetter == ROBOT_ID) {
-      currPosition[0] = rx;
-      currPosition[1] = ry;
+      xPos = rx;
+      yPos = ry;
       foundSelf = true;
     }
   }
@@ -95,7 +137,7 @@ bool xbee::parseBroadcast(const char* buf) {
   return foundSelf;
 }
 
-void xbee::processXBeeMessage() {
+void processXBeeMessage() {
   if (rxIndex == 0) return;
 
   rxBuffer[rxIndex] = '\0';
@@ -103,15 +145,15 @@ void xbee::processXBeeMessage() {
   if (parseBroadcast(rxBuffer)) {
     xbeeHasValidPosition = true;
     Serial.print("XBee position: ");
-    Serial.print(currPosition[0]);
+    Serial.print(xPos);
     Serial.print(", ");
-    Serial.println(currPosition[1]);
+    Serial.println(yPos);
   }
 
   rxIndex = 0;
 }
 
-void xbee::updateXBeePosition() {
+void updateXBeePosition() {
   while (Serial1.available()) {
     char c = Serial1.read();
     lastRxTime = millis();
@@ -140,27 +182,6 @@ void xbee::updateXBeePosition() {
   }
 }
 
-//PUBLIC FUNCTIONS
-bool xbee::gameStarted() {
-  //TODO
-  return false;
-}
-
-const double* xbee::currentPosition() {
-  //TODO
-  return currPosition;
-}
-
-const double* xbee::opponentPosition() {
-  //TODO
-  return 0;
-}
-
-const double* xbee::LeftGoalPosition() {
-  //TODO
-  return GOAL_LEFT;
-}
-const double* xbee::rightGoalPosition() {
-  //TODO
-  return GOAL_RIGHT;
-}
+//=========================
+// pixy
+Pixy2 pixy;
