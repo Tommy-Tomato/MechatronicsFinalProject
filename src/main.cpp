@@ -2,12 +2,14 @@
 #include "xbee.h"
 
 xbee comms;
+  
 
 void setup() {
+  comms.startup();
   
-  int result = myFunction(2, 3);
 }
 
 void loop() {
-  comms.startup();
+ double Position[2] = comms.currentPosition();
+ Serial.println(Position[1]);
 }
