@@ -36,6 +36,9 @@ public:
     void setTurn(double targetYaw);
     void stopMotors();
     void update();
+
+    void adjustHeading (double deltaYaw);
+    void setBaseSpeed (int speed);
 };
 
 #endif
