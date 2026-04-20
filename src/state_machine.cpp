@@ -49,7 +49,7 @@ void updateStateMachine() {
 }
 
 void stateIDLE() {
-  stopMotors();
+  motors.stopMotors();
 }
 
 void stateChasePuck() {
@@ -60,10 +60,10 @@ void stateChasePuck() {
   }
 
   if (orangeX < camCenter_X - CENTER_TOL) {
-    setpoint -= TURN_STEP;
+    motors.setTurn(-TURN_STEP);
   }
   else if (orangeX > camCenter_X + CENTER_TOL) {
-    setpoint += TURN_STEP;
+    motors.setTurn(+TURN_STEP);
   }
 
   if (setpoint >= 360.0) setpoint -= 360.0;
