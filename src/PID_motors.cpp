@@ -108,6 +108,7 @@ void Motor::resetPIDHeading() {
 }
 
 // ================= TURN CONTROL =================
+//EDIT SO THAT IT LOOPS, CURRENTLY ONLY DOES 1 RUNTHROUGH
 void Motor::setTurn(double targetYaw) {
     double currentYaw = getYaw();
     double remaining = angleDiff(targetYaw, currentYaw);
