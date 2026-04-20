@@ -28,7 +28,7 @@ Motor::Motor() : bno(55, 0x28, &Wire) {
 // ================= INITIALIZATION =================
 void Motor::initMotors() {
     motors.enableDrivers();
-    delay(1000);
+    delay(100);
 
     // Capture initial heading
     setpoint = getYaw();
@@ -90,7 +90,11 @@ void Motor::PID_control() {
 }
 
 void Motor::update() {
-    PID_control();
+    if (turning) {
+        handleTurn();
+    } else {
+        PID_control();
+    }
 }
 
 // ================= RESET HEADING =================
@@ -104,53 +108,36 @@ void Motor::resetPIDHeading() {
 
     previousTime = millis();
 
-    delay(50);
 }
 
 // ================= TURN CONTROL =================
 //EDIT SO THAT IT LOOPS, CURRENTLY ONLY DOES 1 RUNTHROUGH
 void Motor::setTurn(double targetYaw) {
+
+    turnGoalYaw = setpoint + targetYaw;
+    turning = true;
+    turnStartTime = millis();
+}
+
+void Motor::handleTurn() {
     double currentYaw = getYaw();
-    double remaining = angleDiff(targetYaw, currentYaw);
+    double remaining = angleDiff(turnGoalYaw, currentYaw);
 
-    const int TURN_BASE_SPEED = 105;
-    const unsigned long turnTimeout = 3000;
-
-    // Check if finished
     if (abs(remaining) < 3.0) {
         stopMotors();
         turning = false;
-        delay(80);
         resetPIDHeading();
-        delay(30);
         return;
     }
 
-    // Timeout safety
-    if (millis() - turnStartTime > turnTimeout) {
-        stopMotors();
-        turning = false;
-        delay(80);
-        resetPIDHeading();
-        delay(30);
-        return;
-    }
+    int speed = constrain(abs(remaining) * 2.5, 50, 105);
 
-    // Speed scaling
-    int currentSpeed = TURN_BASE_SPEED;
-    if (abs(remaining) < 10) {
-        currentSpeed = TURN_BASE_SPEED * 0.6;
-    }
-
-    currentSpeed = max(currentSpeed, 50);
-
-
-    if (remaining > 0) {  // turn right
-        motors.setM1Speed(-currentSpeed);
-        motors.setM2Speed(currentSpeed);
-    } else {              // turn left
-        motors.setM1Speed(currentSpeed);
-        motors.setM2Speed(-currentSpeed);
+    if (remaining > 0) {
+        motors.setM1Speed(-speed);
+        motors.setM2Speed(speed);
+    } else {
+        motors.setM1Speed(speed);
+        motors.setM2Speed(-speed);
     }
 }
 
