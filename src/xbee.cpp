@@ -25,7 +25,14 @@ xbee::xbee() {
     }
 
 
-
+// 
+    void xbee::startup() {
+        Serial.begin(9600);
+        Serial1.begin(115200);
+        rxIndex = 0;
+        xbeeHasValidPosition = false;
+        updateTargetGoal(true); // default direction
+    }
 // HELPERS
 
 // boolean to check if inside given coordinates

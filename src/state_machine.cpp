@@ -13,7 +13,7 @@ int orangeX = 0;
 
 Motor motor;
 
-enum State { IDLE, CHASE_PUCK };
+enum State {IDLE, CHASE_PUCK};
 State state = IDLE;
 
 bool detectOrange();
@@ -52,8 +52,8 @@ void stateIDLE() {
 
 void stateChasePuck() {
   if (!detectOrange()) {
-    motors.setM1Speed(SEARCH_SPEED);
-    motors.setM2Speed(SEARCH_SPEED);
+    motors.update(SEARCH_SPEED);
+    motors.update(SEARCH_SPEED);
     return;
   }
 
