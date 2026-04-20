@@ -27,6 +27,7 @@ private:
     double angleDiff(double target, double current);
     void PID_control();
     void resetPIDHeading();
+    void handleTurn();
 
 public:
     Motor();
