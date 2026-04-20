@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Pixy2.h>
+#include "PID_motors.h"
 
 const int SIG_ORANGE = 1;
 const int camCenter_X = 158;
@@ -11,7 +12,8 @@ const int CENTER_TOL = 15;
 bool orangeSeen = false;
 int orangeX = 0;
 
-Motor motor;
+Motor motors;
+Pixy2 pixy;
 
 enum State {IDLE, CHASE_PUCK};
 State state = IDLE;
