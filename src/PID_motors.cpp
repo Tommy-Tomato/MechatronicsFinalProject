@@ -159,3 +159,14 @@ void Motor::stopMotors() {
     motors.setM1Speed(0);
     motors.setM2Speed(0);
 }
+
+void Motor::setBaseSpeed(int speed) {
+    baseSpeed = speed;
+}
+
+void Motor::adjustHeading(double deltaYaw) {
+    setpoint += deltaYaw;
+
+    if (setpoint >= 360.0) setpoint -= 360.0;
+    if (setpoint < 0.0) setpoint += 360.0;
+}
