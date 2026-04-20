@@ -1,17 +1,15 @@
 #include <Arduino.h>
 #include <Pixy2.h>
+#include "PID_motors.h"
 
 extern Pixy2 pixy;
-
-extern double setpoint;
-extern int baseSpeed;
 
 void PID_control();
 void stopMotors();
 void resetPIDHeading();
 
 // Pixy tracking constants
-const int SIG_ORANGE = 1;
+const int SIG_ORANGE = 1; // signature of Pixy2
 const int CAM_CENTER_X = 158;
 const int CENTER_TOL = 8;
 
@@ -38,18 +36,13 @@ unsigned long lastSeenTime = 0;
 unsigned long lastSearchUpdate = 0;
 bool searchDirRight = true;
 
+Motor motors;
+
 // functions
 bool detectOrange();
 void updateStateMachine();
 void stateSearchPuck();
 void stateFollowPuck();
-float wrapAngle(float a);
-
-float wrapAngle(float a) {
-  while (a >= 360.0) a -= 360.0;
-  while (a < 0.0) a += 360.0;
-  return a;
-}
 
 // detecting orange
 bool detectOrange() {
@@ -105,21 +98,20 @@ void stateSearchPuck() {
   }
 
   // keep moving slowly while sweeping heading
-  baseSpeed = SLOW_SPEED;
+  motors.setBaseSpeed(SLOW_SPEED);
 
   if (millis() - lastSearchUpdate > 90) {
     if (searchDirRight) {
-      setpoint += 8.0;
+      motors.adjustHeading(8.0);
     } else {
-      setpoint -= 8.0;
+      motors.adjustHeading(-8.0);
     }
 
-    setpoint = wrapAngle(setpoint);
     searchDirRight = !searchDirRight;
     lastSearchUpdate = millis();
   }
 
-  PID_control();
+  motors.update();
 }
 
 void stateFollowPuck() {
@@ -127,36 +119,28 @@ void stateFollowPuck() {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
       state = SEARCH_PUCK;
     }
-    PID_control();
+    motors.update();
     return;
   }
 
   int pixelError = orangeX - CAM_CENTER_X;
 
-  // speed logic:
   // go faster when puck is farther away, slower when very close
   if (orangeArea > CLOSE_AREA) {
-    baseSpeed = 90;
+    motors.setBaseSpeed(90);;
   } else {
-    baseSpeed = FAST_SPEED;
+    motors.setBaseSpeed(FAST_SPEED);
   }
 
   // if nearly centered, drive mostly straight
   if (abs(pixelError) <= CENTER_TOL) {
-    PID_control();
-    return;
-  }
-
-  // convert camera error into heading correction
   float turnDelta = TURN_GAIN * pixelError;
 
   if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
   if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
 
-  // IMPORTANT:
-  // update setpoint every loop so the robot keeps tracking a moving puck
-  setpoint += turnDelta;
-  setpoint = wrapAngle(setpoint);
-
-  PID_control();
+  motors.adjustHeading(turnDelta);
+  }
+  
+  motors.update();
 }
