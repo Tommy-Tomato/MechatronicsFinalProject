@@ -95,8 +95,8 @@ void Motor::PID_control() {
     rightSpeed = constrain(rightSpeed, -300, 300);
 
     // Apply speeds
-    motors.setM2Speed(-leftSpeed); // left motor
-    motors.setM1Speed(rightSpeed); // right motor
+    motors.setM2Speed(leftSpeed); // left motor
+    motors.setM1Speed(-rightSpeed); // right motor
 }
 
 void Motor::update() {
