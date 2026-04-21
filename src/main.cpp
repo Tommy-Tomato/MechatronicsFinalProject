@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "xbee.h"
 
+
 xbee comms;
   
 
@@ -13,3 +14,4 @@ void loop() {
  const double* Position = comms.currentPosition();
  Serial.println(Position[1]);
 }
+

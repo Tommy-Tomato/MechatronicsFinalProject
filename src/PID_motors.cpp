@@ -27,12 +27,22 @@ Motor::Motor() : bno(55, 0x28, &Wire) {
 
 // ================= INITIALIZATION =================
 void Motor::initMotors() {
+    //initialize IMU
+    if (!bno.begin()) {
+        Serial.println("BNO055 not detected!");
+        while (1);
+    }
+    bno.setExtCrystalUse(true);
+
+    //initialize Motors
     motors.enableDrivers();
     delay(100);
 
     // Capture initial heading
     setpoint = getYaw();
     previousTime = millis();
+
+
 }
 
 // ================= HELPER FUNCTIONS =================
@@ -115,6 +125,9 @@ void Motor::resetPIDHeading() {
 void Motor::setTurn(double targetYaw) {
 
     turnGoalYaw = setpoint + targetYaw;
+    if (turnGoalYaw >= 360) turnGoalYaw -= 360;
+    if (turnGoalYaw < 0) turnGoalYaw += 360;
+    
     turning = true;
     turnStartTime = millis();
 }

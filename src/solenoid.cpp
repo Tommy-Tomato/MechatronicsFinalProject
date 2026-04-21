@@ -1,8 +1,8 @@
-#include "solenoid.h"
+#include "Solenoid.h"
 
-Solenoid::Solenoid(int solPin, int pingSensorPin) {
+Solenoid::Solenoid(int solPin) {
     solenoidPin = solPin;
-    pingPin = pingSensorPin;
+    pingPin = 3;
 
     puckThresholdCm = 5.0;     // puck is considered "captured" within 5 cm
     firePulseMs = 120;         // how long solenoid stays on
