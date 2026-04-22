@@ -23,7 +23,9 @@ state_machine::state_machine()
       orangeArea(0),
       lastSeenTime(0),
       lastSearchUpdate(0),
-      searchDirRight(true) {
+      searchDirRight(true), 
+      pingDistance(999.0f), 
+      goalX(0), goalY(0){
 }
 
 
@@ -73,6 +75,10 @@ void state_machine::updateStateMachine() {
     case FOLLOW_PUCK:
       Serial.println("following...");
       stateFollowPuck();
+      break;
+
+      case SHOOT_PUCK:    
+      stateShootPuck();
       break;
   }
 }
@@ -130,3 +136,5 @@ void state_machine::stateFollowPuck() {
   
   motors.update();
 }
+
+// ping detect puck 5 cm away switch to 

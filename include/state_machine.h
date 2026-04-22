@@ -26,7 +26,7 @@ const unsigned long LOST_TIMEOUT;
 
 // enum states
 enum State {
-  SEARCH_PUCK,FOLLOW_PUCK
+  SEARCH_PUCK,FOLLOW_PUCK,SHOOT_PUCK
 };
 
 State state = SEARCH_PUCK;
@@ -39,10 +39,17 @@ unsigned long lastSeenTime;
 unsigned long lastSearchUpdate;
 bool searchDirRight;
 
+// === ping and goal var ===
+  float pingDistance;
+  float goalX, goalY;
+
+
 Motor motors;
 
 bool detectOrange();
-
+float readPing();        
+void readGoalFromXBee();  
+void stateShootPuck();     
 
 
 public:
