@@ -6,10 +6,10 @@ Pixy2 pixy;
 state_machine::state_machine()
     : SIG_ORANGE(1),
       CAM_CENTER_X(158),
-      CENTER_TOL(2),
+      CENTER_TOL(8),
       FAST_SPEED(165),
       SLOW_SPEED(90),
-      TURN_GAIN(0.15f),
+      TURN_GAIN(0.09f),
       MAX_TURN_DELTA(10.0f),
       CLOSE_AREA(5200),
       LOST_TIMEOUT(250),
@@ -89,9 +89,9 @@ void state_machine::stateSearchPuck() {
 
   if (millis() - lastSearchUpdate > 90) {
     if (searchDirRight) {
-      motors.adjustHeading(30.0);
+      motors.adjustHeading(8.0);
     } else {
-      motors.adjustHeading(-30.0);
+      motors.adjustHeading(-8.0);
     }
 
     searchDirRight = !searchDirRight;
@@ -102,13 +102,12 @@ void state_machine::stateSearchPuck() {
 }
 
 void state_machine::stateFollowPuck() {
-  /*if (pingDistance > 0 && pingDistance <= 5.0f) {
+  if (pingDistance > 0 && pingDistance <= 5.0f) {
     Serial.println("puck is grab going to score");
     readGoalFromXBee();
     state = SHOOT_PUCK;
     return;
   }
-*/
   if (!orangeSeen) {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
       state = SEARCH_PUCK;
@@ -119,25 +118,22 @@ void state_machine::stateFollowPuck() {
 
   int pixelError = orangeX - CAM_CENTER_X;
 
-  // speed control
+  // go faster when puck is farther away, slower when very close
   if (orangeArea > CLOSE_AREA) {
-    motors.setBaseSpeed(SLOW_SPEED);
+    motors.setBaseSpeed(90);;
   } else {
     motors.setBaseSpeed(FAST_SPEED);
   }
 
-  float turnDelta = 0.0f;
+  // if nearly centered, drive mostly straight
+  if (abs(pixelError) <= CENTER_TOL) {
+  float turnDelta = TURN_GAIN * pixelError;
 
-  // turn when target is NOT centered
-  if (abs(pixelError) > CENTER_TOL) {
-    turnDelta = TURN_GAIN * pixelError;
-
-    if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
-    if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
-  }
+  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
+  if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
 
   motors.adjustHeading(turnDelta);
+  }
+  
   motors.update();
 }
-
-// ping detect puck 5 cm away switch to 
