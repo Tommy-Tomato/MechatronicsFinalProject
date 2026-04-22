@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "xbee.h"
 #include "PID_motors.h"
+#include "state_machine.h"
 
 
 xbee comms;
@@ -17,9 +18,11 @@ void loop() {
 //  }
 //const double* Position = comms.currentPosition();
 //Serial.println(Position[1]);
-  motors.update();
-  delay(2000);
-  //motors.setTurn(10);
+  long startTime = millis();
+  while(millis()-startTime < 3000) {
+    motors.update();
+  }
+  
   motors.stopMotors();
   delay(1000);
 }
