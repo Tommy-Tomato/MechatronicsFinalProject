@@ -1,51 +1,34 @@
-#include <Arduino.h>
-#include <Pixy2.h>
-#include "PID_motors.h"
 
-extern Pixy2 pixy;
+#include "state_machine.h"
 
-void PID_control();
-void stopMotors();
-void resetPIDHeading();
-
-// Pixy tracking constants
-const int SIG_ORANGE = 1; // signature of Pixy2
-const int CAM_CENTER_X = 158;
-const int CENTER_TOL = 8;
-
-// tune these on the robot
-const int FAST_SPEED = 165;
-const int SLOW_SPEED = 120;
-const float TURN_GAIN = 0.09;      // deg of heading change per pixel error
-const float MAX_TURN_DELTA = 10.0; // limit heading jump per loop
-const int CLOSE_AREA = 5200;       // stop / slow when puck is very close
-const unsigned long LOST_TIMEOUT = 250;
-
-// enum states
-enum State {
-  SEARCH_PUCK,FOLLOW_PUCK
-};
-
-State state = SEARCH_PUCK;
-
-// ===== tracking variables =====
-bool orangeSeen = false;
-int orangeX = CAM_CENTER_X;
-int orangeArea = 0;
-unsigned long lastSeenTime = 0;
-unsigned long lastSearchUpdate = 0;
-bool searchDirRight = true;
-
-Motor motors;
+Pixy2 pixy;
 
 // functions
-bool detectOrange();
-void updateStateMachine();
-void stateSearchPuck();
-void stateFollowPuck();
+
+
+
+state_machine::state_machine()
+    : SIG_ORANGE(1),
+      CAM_CENTER_X(158),
+      CENTER_TOL(8),
+      FAST_SPEED(165),
+      SLOW_SPEED(120),
+      TURN_GAIN(0.09f),
+      MAX_TURN_DELTA(10.0f),
+      CLOSE_AREA(5200),
+      LOST_TIMEOUT(250),
+      state(SEARCH_PUCK),
+      orangeSeen(false),
+      orangeX(CAM_CENTER_X),
+      orangeArea(0),
+      lastSeenTime(0),
+      lastSearchUpdate(0),
+      searchDirRight(true) {
+}
+
 
 // detecting orange
-bool detectOrange() {
+bool state_machine::detectOrange() {
   pixy.ccc.getBlocks();
   orangeSeen = false;
 
@@ -77,7 +60,7 @@ bool detectOrange() {
 }
 
 // switches
-void updateStateMachine() {
+void state_machine::updateStateMachine() {
   detectOrange();
 
   switch (state) {
@@ -91,7 +74,7 @@ void updateStateMachine() {
   }
 }
 
-void stateSearchPuck() {
+void state_machine::stateSearchPuck() {
   if (orangeSeen) {
     state = FOLLOW_PUCK;
     return;
@@ -114,7 +97,7 @@ void stateSearchPuck() {
   motors.update();
 }
 
-void stateFollowPuck() {
+void state_machine::stateFollowPuck() {
   if (!orangeSeen) {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
       state = SEARCH_PUCK;
