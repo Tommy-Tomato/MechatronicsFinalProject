@@ -6,10 +6,15 @@
 xbee comms;
 Motor motors;
 state_machine state;
+extern Pixy2 pixy;
+
 
 void setup() {
   comms.startup();
   motors.initMotors();
+  Serial.begin(9600);
+  Serial.println("starting...");
+  pixy.init();
   delay(1000);
 }
 
@@ -22,10 +27,8 @@ void loop() {
 //  }
 //const double* Position = comms.currentPosition();
 //Serial.println(Position[1]);
-//  long startTime = millis();
-//  while(millis()-startTime < 3000) {
-//    motors.update();
-//  }
+//  
+
 //  
 //  motors.stopMotors();
 //  delay(1000);

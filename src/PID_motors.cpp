@@ -137,7 +137,6 @@ void Motor::handleTurn() {
     double remaining = angleDiff(turnGoalYaw, currentYaw);
 
     if (abs(remaining) < 3.0) {
-        stopMotors();
         turning = false;
         resetPIDHeading();
         return;

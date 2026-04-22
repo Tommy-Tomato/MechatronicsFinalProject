@@ -27,6 +27,7 @@ state_machine::state_machine()
 }
 
 
+
 // detecting orange
 bool state_machine::detectOrange() {
   pixy.ccc.getBlocks();
@@ -48,6 +49,7 @@ bool state_machine::detectOrange() {
   }
 
   if (bestIndex >= 0) {
+    Serial.println("Orange Seen");
     orangeSeen = true;
     orangeX = pixy.ccc.blocks[bestIndex].m_x;
     orangeArea = bestArea;
@@ -69,6 +71,7 @@ void state_machine::updateStateMachine() {
       break;
 
     case FOLLOW_PUCK:
+      Serial.println("following...");
       stateFollowPuck();
       break;
   }
