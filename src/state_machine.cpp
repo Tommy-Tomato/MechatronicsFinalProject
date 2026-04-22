@@ -12,7 +12,7 @@ state_machine::state_machine()
       CAM_CENTER_X(158),
       CENTER_TOL(8),
       FAST_SPEED(165),
-      SLOW_SPEED(120),
+      SLOW_SPEED(90),
       TURN_GAIN(0.09f),
       MAX_TURN_DELTA(10.0f),
       CLOSE_AREA(5200),
