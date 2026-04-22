@@ -48,15 +48,14 @@ Motor motors;
 
 bool detectOrange();
 float readPing();        
-void readGoalFromXBee();  
-void stateShootPuck();     
-
+void readGoalFromXBee();
 
 public:
     state_machine();    
     void updateStateMachine();
     void stateSearchPuck();
     void stateFollowPuck();
+
 };
 
 #endif
