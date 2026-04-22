@@ -102,12 +102,12 @@ void state_machine::stateSearchPuck() {
 }
 
 void state_machine::stateFollowPuck() {
-  if (pingDistance > 0 && pingDistance <= 5.0f) {
+  /*if (pingDistance > 0 && pingDistance <= 5.0f) {
     Serial.println("puck is grab going to score");
     readGoalFromXBee();
     state = SHOOT_PUCK;
-    return;
-  }
+    return;*/
+  
   if (!orangeSeen) {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
       state = SEARCH_PUCK;

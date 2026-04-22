@@ -26,7 +26,7 @@ const unsigned long LOST_TIMEOUT;
 
 // enum states
 enum State {
-  SEARCH_PUCK,FOLLOW_PUCK,SHOOT_PUCK
+  SEARCH_PUCK,FOLLOW_PUCK,/*SHOOT_PUCK*/
 };
 
 State state = SEARCH_PUCK;
