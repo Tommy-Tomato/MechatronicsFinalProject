@@ -88,9 +88,9 @@ void state_machine::stateSearchPuck() {
 
   if (millis() - lastSearchUpdate > 90) {
     if (searchDirRight) {
-      motors.adjustHeading(8.0);
+      motors.adjustHeading(16.0);
     } else {
-      motors.adjustHeading(-8.0);
+      motors.adjustHeading(-16.0);
     }
 
     searchDirRight = !searchDirRight;
