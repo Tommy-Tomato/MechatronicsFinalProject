@@ -3,10 +3,6 @@
 
 Pixy2 pixy;
 
-// functions
-
-
-
 state_machine::state_machine()
     : SIG_ORANGE(1),
       CAM_CENTER_X(158),
@@ -25,7 +21,6 @@ state_machine::state_machine()
       lastSearchUpdate(0),
       searchDirRight(true) {
 }
-
 
 
 // detecting orange
@@ -88,9 +83,9 @@ void state_machine::stateSearchPuck() {
 
   if (millis() - lastSearchUpdate > 90) {
     if (searchDirRight) {
-      motors.adjustHeading(16.0);
+      motors.adjustHeading(30.0);
     } else {
-      motors.adjustHeading(-16.0);
+      motors.adjustHeading(-30.0);
     }
 
     searchDirRight = !searchDirRight;
