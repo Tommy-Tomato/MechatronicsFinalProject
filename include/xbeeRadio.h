@@ -18,7 +18,7 @@ private:
     int rxIndex;
     unsigned long lastRxTime;
     #define RX_TIMEOUT_MS 5
-    #define ROBOT_ID 'F'
+    #define ROBOT_ID 'Y'
 
     void updateTargetGoal(bool attackRight);
 
