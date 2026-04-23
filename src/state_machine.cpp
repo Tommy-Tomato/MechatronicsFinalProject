@@ -25,7 +25,6 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
-        radio.startup();
 }
 
 // PING pings and data
