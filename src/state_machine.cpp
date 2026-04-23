@@ -25,6 +25,28 @@ state_machine::state_machine()
       goalX(0), goalY(0){
 }
 
+// PING pings and data
+const int PINGpin = 3;
+
+float state_machine::readPing() {
+  pinMode(PINGpin, OUTPUT);
+  digitalWrite(PINGpin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PINGpin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(PINGpin, LOW);
+
+  pinMode(PINGpin, INPUT);
+  long pulseDuration = pulseIn(PINGpin, HIGH, 30000);
+
+  if (pulseDuration == 0) {
+    return -1.0f;
+  }
+
+  float distance = pulseDuration * 0.0343f / 2.0f;
+  return distance;
+  Serial.println(distance); // debug
+}
 
 // detecting orange
 bool state_machine::detectOrange() {
@@ -62,6 +84,7 @@ bool state_machine::detectOrange() {
 // switches
 void state_machine::updateStateMachine() {
   detectOrange();
+  pingDistance = readPing();
 
   switch (state) {
     case SEARCH_PUCK:
