@@ -1,5 +1,5 @@
 #include "state_machine.h"
-#include "xbee.h"
+#include "xbeeRadio.h"
 #include "PID_motors.h"
 
 Pixy2 pixy;

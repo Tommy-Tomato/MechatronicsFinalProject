@@ -1,13 +1,12 @@
-#ifndef STATE_MACHINE_H
-#define STATE_MACHINE_H
+
 
 
 #include <Arduino.h>
 #include <Adafruit_BNO055.h>
 #include <DualMAX14870MotorShield.h>
-#include <Arduino.h>
 #include <Pixy2.h>
 #include "PID_motors.h"
+#include "xbeeRadio.h"
 
 class state_machine {
 private:
@@ -24,8 +23,7 @@ const float MAX_TURN_DELTA; // limit heading jump per loop
 const int CLOSE_AREA;       // stop / slow when puck is very close
 const unsigned long LOST_TIMEOUT;
 
-// xbee object
-  xbee radio;
+XBeeRadio radio;
 
 // enum states
 enum State {
@@ -60,5 +58,3 @@ public:
     void stateFollowPuck();
     void stateShootPuck();
 };
-
-#endif

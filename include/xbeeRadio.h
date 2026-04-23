@@ -1,9 +1,9 @@
-#ifndef XBEE_H
-#define XBEE_H
+#ifndef MECHATRONICS_FINALPROJECT_XBEE_H
+#define MECHATRONICS_FINALPROJECT_XBEE_H
 
 #include <Arduino.h>
 
-class xbee {
+class XBeeRadio {
 private:
     const double GOAL_LEFT[2] = {0,52.5};
     const double GOAL_RIGHT[2] = {210,52.5};
@@ -28,7 +28,7 @@ private:
     
 
 public:
-    xbee();
+    XBeeRadio();
 
     void startup();
     bool gameStarted();
@@ -40,5 +40,5 @@ public:
     const double* rightGoalPosition();
 };
 
-    #endif
+#endif
 

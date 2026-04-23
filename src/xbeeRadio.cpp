@@ -1,7 +1,7 @@
 //MOVED VARIABLES TO INTERFACE (xbee.h)
-#include "xbee.h"
+#include "xbeeRadio.h"
 
-xbee::xbee() {
+XBeeRadio::XBeeRadio() {
 
 }
 
@@ -9,19 +9,19 @@ xbee::xbee() {
 
 
 // Set target goal
-    void xbee::updateTargetGoal(bool attackRight) {
+    void XBeeRadio::updateTargetGoal(bool attackRight) {
     if (attackRight) {
+        targetGoal[0] = GOAL_RIGHT[0];
         targetGoal[1] = GOAL_RIGHT[1];
-        targetGoal[2] = GOAL_RIGHT[2];
     } else {
+        targetGoal[0] = GOAL_LEFT[0];
         targetGoal[1] = GOAL_LEFT[1];
-        targetGoal[2] = GOAL_LEFT[2];
     }
     }
 
 
 // 
-    void xbee::startup() {
+    void XBeeRadio::startup() {
         Serial.begin(9600);
         Serial1.begin(115200);
         rxIndex = 0;
@@ -31,12 +31,12 @@ xbee::xbee() {
 // HELPERS
 
 // boolean to check if inside given coordinates
-bool xbee::inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
+bool XBeeRadio::inBox(int x, int y, int xmin, int xmax, int ymin, int ymax) {
   return (x >= xmin && x <= xmax && y >= ymin && y <= ymax);
 }
 
 
-int xbee::extractDigits(const char* buf, int len, int &pos, int numDigits) {
+int XBeeRadio::extractDigits(const char* buf, int len, int &pos, int numDigits) {
   int value = 0;
   for (int i = 0; i < numDigits; i++) {
     if (pos >= len) return -1;
@@ -47,7 +47,7 @@ int xbee::extractDigits(const char* buf, int len, int &pos, int numDigits) {
   return value;
 }
 
-bool xbee::parseBroadcast(const char* buf) {
+bool XBeeRadio::parseBroadcast(const char* buf) {
   int len = strlen(buf);
   if (len < 13) return false;
   if (buf[0] != '>') return false;
@@ -97,7 +97,7 @@ bool xbee::parseBroadcast(const char* buf) {
   return foundSelf;
 }
 
-void xbee::processXBeeMessage() {
+void XBeeRadio::processXBeeMessage() {
   if (rxIndex == 0) return;
 
   rxBuffer[rxIndex] = '\0';
@@ -113,7 +113,7 @@ void xbee::processXBeeMessage() {
   rxIndex = 0;
 }
 
-void xbee::updateXBeePosition() {
+void XBeeRadio::updateXBeePosition() {
   while (Serial1.available()) {
     char c = Serial1.read();
     lastRxTime = millis();
@@ -143,26 +143,26 @@ void xbee::updateXBeePosition() {
 }
 
 //PUBLIC FUNCTIONS
-bool xbee::gameStarted() {
+bool XBeeRadio::gameStarted() {
   //TODO
   return false;
 }
 
-const double* xbee::currentPosition() {
+const double* XBeeRadio::currentPosition() {
   //TODO
   return currPosition;
 }
 
-const double* xbee::opponentPosition() {
+const double* XBeeRadio::opponentPosition() {
   //TODO
   return 0;
 }
 
-const double* xbee::leftGoalPosition() {
+const double* XBeeRadio::leftGoalPosition() {
   //TODO
   return GOAL_LEFT;
 }
-const double* xbee::rightGoalPosition() {
+const double* XBeeRadio::rightGoalPosition() {
   //TODO
   return GOAL_RIGHT;
 }

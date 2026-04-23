@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include "xbee.h"
+#include "xbeeRadio.h"
 #include "state_machine.h"
 
 
-xbee comms;
+XBeeRadio comms;
 Motor motors;
 state_machine state;
 extern Pixy2 pixy;
