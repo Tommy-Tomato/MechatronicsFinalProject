@@ -158,7 +158,7 @@ const double* xbee::opponentPosition() {
   return 0;
 }
 
-const double* xbee::LeftGoalPosition() {
+const double* xbee::leftGoalPosition() {
   //TODO
   return GOAL_LEFT;
 }
