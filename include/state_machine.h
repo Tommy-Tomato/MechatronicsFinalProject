@@ -7,6 +7,7 @@
 #include <Pixy2.h>
 #include "PID_motors.h"
 #include "xbeeRadio.h"
+#include <Ultrasonic.h>
 
 class state_machine {
 private:
