@@ -1,5 +1,5 @@
-
-
+#ifndef STATE_MACHINE_H
+#define STATE_MACHINE_H
 
 #include <Arduino.h>
 #include <Adafruit_BNO055.h>
@@ -24,7 +24,8 @@ const float MAX_TURN_DELTA; // limit heading jump per loop
 const int CLOSE_AREA;       // stop / slow when puck is very close
 const unsigned long LOST_TIMEOUT;
 
-XBeeRadio radio;
+XBeeRadio& radio;
+Motor& motors;
 
 // enum states
 enum State {
@@ -46,16 +47,16 @@ bool searchDirRight;
   float goalX, goalY;
 
 
-Motor motors;
-
 bool detectOrange();
 float readPing();        
 void readGoalFromXBee();
 
 public:
-    state_machine();    
+    state_machine(XBeeRadio& r, Motor& m);    
     void updateStateMachine();
     void stateSearchPuck();
     void stateFollowPuck();
     void stateShootPuck();
 };
+
+#endif

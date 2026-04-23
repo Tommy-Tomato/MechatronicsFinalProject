@@ -4,8 +4,10 @@
 
 Pixy2 pixy;
 
-state_machine::state_machine()
-    : SIG_ORANGE(1),
+state_machine::state_machine(XBeeRadio& r, Motor& m)
+    : radio(r), 
+      motors(m),
+      SIG_ORANGE(1),
       CAM_CENTER_X(158),
       CENTER_TOL(15),
       FAST_SPEED(165),
@@ -23,6 +25,7 @@ state_machine::state_machine()
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
+        radio.startup();
 }
 
 // PING pings and data
@@ -83,6 +86,7 @@ bool state_machine::detectOrange() {
 
 // switches
 void state_machine::updateStateMachine() {
+  radio.updateXBeePosition();
   detectOrange();
   pingDistance = readPing();
 

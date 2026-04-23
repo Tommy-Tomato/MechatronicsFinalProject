@@ -2,10 +2,10 @@
 #include "xbeeRadio.h"
 
 XBeeRadio::XBeeRadio() {
-
+  gameStartedFlag = false;
+  currPosition[0] = 0;
+  currPosition[1] = 0;
 }
-
-
 
 
 // Set target goal
@@ -71,6 +71,8 @@ bool XBeeRadio::parseBroadcast(const char* buf) {
 
   int mBit = extractDigits(buf, len, pos, 1);
   if (mBit < 0) return false;
+
+  gameStartedFlag = (mBit == 1);
 
   int mTime = extractDigits(buf, len, pos, 4);
   if (mTime < 0) return false;
@@ -144,12 +146,10 @@ void XBeeRadio::updateXBeePosition() {
 
 //PUBLIC FUNCTIONS
 bool XBeeRadio::gameStarted() {
-  //TODO
-  return false;
+  return gameStartedFlag;
 }
 
 const double* XBeeRadio::currentPosition() {
-  //TODO
   return currPosition;
 }
 
@@ -159,10 +159,8 @@ const double* XBeeRadio::opponentPosition() {
 }
 
 const double* XBeeRadio::leftGoalPosition() {
-  //TODO
   return GOAL_LEFT;
 }
 const double* XBeeRadio::rightGoalPosition() {
-  //TODO
   return GOAL_RIGHT;
 }

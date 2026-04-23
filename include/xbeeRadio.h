@@ -5,6 +5,7 @@
 
 class XBeeRadio {
 private:
+    bool gameStartedFlag;
     const double GOAL_LEFT[2] = {0,52.5};
     const double GOAL_RIGHT[2] = {210,52.5};
     double targetGoal[2];
@@ -25,6 +26,7 @@ private:
     int extractDigits(const char* buf, int len, int &pos, int numDigits);
     bool parseBroadcast(const char* buf);
     void processXBeeMessage();
+    
     
 
 public:

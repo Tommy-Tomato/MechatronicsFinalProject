@@ -3,24 +3,29 @@
 #include "state_machine.h"
 
 
-XBeeRadio comms;
 Motor motors;
+XBeeRadio comms;
 state_machine state;
 extern Pixy2 pixy;
+state_machine state(comms, motors);
 
 
 void setup() {
-  comms.startup();
   motors.initMotors();
+  pixy.init();
+  comms.startup();
+  
   Serial.begin(9600);
   Serial.println("starting...");
-  pixy.init();
+  
   delay(1000);
 }
   
 void loop() {
-  state.updateStateMachine();
-  const double* Position = comms.currentPosition();
-  Serial.println(Position[1]);
+  if (comms.gameStarted()) {
+    state.updateStateMachine();
+  } else {
+    motors.stopMotors();
+  }
 }
 
