@@ -17,7 +17,7 @@ void setup() {
   pixy.init();
   delay(1000);
 }
-
+  
 void loop() {
   state.updateStateMachine();
 }

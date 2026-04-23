@@ -6,11 +6,11 @@ Pixy2 pixy;
 state_machine::state_machine()
     : SIG_ORANGE(1),
       CAM_CENTER_X(158),
-      CENTER_TOL(8),
+      CENTER_TOL(15),
       FAST_SPEED(165),
       SLOW_SPEED(90),
-      TURN_GAIN(0.09f),
-      MAX_TURN_DELTA(10.0f),
+      TURN_GAIN(0.25f),
+      MAX_TURN_DELTA(15.0f),
       CLOSE_AREA(5200),
       LOST_TIMEOUT(250),
       state(SEARCH_PUCK),
@@ -46,7 +46,7 @@ bool state_machine::detectOrange() {
   }
 
   if (bestIndex >= 0) {
-    Serial.println("Orange Seen");
+    //Serial.println("Orange Seen");
     orangeSeen = true;
     orangeX = pixy.ccc.blocks[bestIndex].m_x;
     orangeArea = bestArea;
@@ -68,7 +68,7 @@ void state_machine::updateStateMachine() {
       break;
 
     case FOLLOW_PUCK:
-      Serial.println("following...");
+      //Serial.println("following...");
       stateFollowPuck();
       break;
 
@@ -87,11 +87,11 @@ void state_machine::stateSearchPuck() {
   // keep moving slowly while sweeping heading
   motors.setBaseSpeed(SLOW_SPEED);
 
-  if (millis() - lastSearchUpdate > 90) {
+  if (millis() - lastSearchUpdate > 700) {
     if (searchDirRight) {
-      motors.adjustHeading(8.0);
+      motors.adjustHeading(70);
     } else {
-      motors.adjustHeading(-8.0);
+      motors.adjustHeading(-70);
     }
 
     searchDirRight = !searchDirRight;
@@ -117,6 +117,7 @@ void state_machine::stateFollowPuck() {
   }
 
   int pixelError = orangeX - CAM_CENTER_X;
+  Serial.println(pixelError);
 
   // go faster when puck is farther away, slower when very close
   if (orangeArea > CLOSE_AREA) {
@@ -126,11 +127,11 @@ void state_machine::stateFollowPuck() {
   }
 
   // if nearly centered, drive mostly straight
-  if (abs(pixelError) <= CENTER_TOL) {
-  float turnDelta = TURN_GAIN * pixelError;
+  if (abs(pixelError) >= CENTER_TOL) {
+  float turnDelta = -TURN_GAIN * pixelError;
 
-  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
-  if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
+  if (turnDelta > MAX_TURN_DELTA) {turnDelta = MAX_TURN_DELTA;}
+  if (turnDelta < -MAX_TURN_DELTA) {turnDelta = -MAX_TURN_DELTA;}
 
   motors.adjustHeading(turnDelta);
   }
