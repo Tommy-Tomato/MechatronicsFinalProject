@@ -20,15 +20,7 @@ void setup() {
   
 void loop() {
   state.updateStateMachine();
+  const double* Position = comms.currentPosition();
+  Serial.println(Position[1]);
 }
 
-//    while (Serial1.available()) {
-//    Serial.write(Serial1.read());
-//  }
-//const double* Position = comms.currentPosition();
-//Serial.println(Position[1]);
-//  
-
-//  
-//  motors.stopMotors();
-//  delay(1000);
