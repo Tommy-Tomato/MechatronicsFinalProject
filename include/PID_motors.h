@@ -23,7 +23,6 @@ private:
     unsigned long turnStartTime;
 
     // Helpers
-    double getYaw();
     double angleDiff(double target, double current);
     void PID_control();
     void resetPIDHeading();
@@ -31,6 +30,8 @@ private:
 
 public:
     Motor();
+
+    double getYaw();
 
     void initMotors();
     void setTurn(double targetYaw);

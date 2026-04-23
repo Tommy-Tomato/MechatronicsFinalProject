@@ -24,9 +24,12 @@ const float MAX_TURN_DELTA; // limit heading jump per loop
 const int CLOSE_AREA;       // stop / slow when puck is very close
 const unsigned long LOST_TIMEOUT;
 
+// xbee object
+  xbee radio;
+
 // enum states
 enum State {
-  SEARCH_PUCK,FOLLOW_PUCK,/*SHOOT_PUCK*/
+  SEARCH_PUCK,FOLLOW_PUCK,SHOOT_PUCK
 };
 
 State state = SEARCH_PUCK;
@@ -55,7 +58,7 @@ public:
     void updateStateMachine();
     void stateSearchPuck();
     void stateFollowPuck();
-
+    void stateShootPuck();
 };
 
 #endif

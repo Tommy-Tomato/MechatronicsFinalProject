@@ -1,8 +1,3 @@
-// NEED TO FIX
-// unedited code from lab 4
-// variables incorrect
-
-
 //MOVED VARIABLES TO INTERFACE (xbee.h)
 #include "xbee.h"
 

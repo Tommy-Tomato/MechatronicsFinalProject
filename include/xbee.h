@@ -33,7 +33,7 @@ public:
     bool inBox(int x, int y, int xmin, int xmax, int ymin, int ymax);
     const double* currentPosition();
     const double* opponentPosition();
-    const double* LeftGoalPosition();
+    const double* leftGoalPosition();
     const double* rightGoalPosition();
 };
 

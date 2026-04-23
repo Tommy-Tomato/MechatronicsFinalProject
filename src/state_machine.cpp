@@ -1,5 +1,6 @@
-
 #include "state_machine.h"
+#include "xbee.h"
+#include "PID_motors.h"
 
 Pixy2 pixy;
 
@@ -72,9 +73,9 @@ void state_machine::updateStateMachine() {
       stateFollowPuck();
       break;
 
-    /*case SHOOT_PUCK:    
+    case SHOOT_PUCK:    
       stateShootPuck();
-      break;*/
+      break;
   }
 }
 
@@ -102,11 +103,15 @@ void state_machine::stateSearchPuck() {
 }
 
 void state_machine::stateFollowPuck() {
-  /*if (pingDistance > 0 && pingDistance <= 5.0f) {
-    Serial.println("puck is grab going to score");
-    readGoalFromXBee();
+  if (pingDistance > 0 && pingDistance <= 5.0f) {
+    Serial.println("puck is grabbed, going to score");
+
+    const double* goal = radio.leftGoalPosition(); // left or right depending on starting position
+    goalX = goal[0];
+    goalY = goal[1];
+
     state = SHOOT_PUCK;
-    return;*/
+    return;
   
   if (!orangeSeen) {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
@@ -136,5 +141,43 @@ void state_machine::stateFollowPuck() {
   motors.adjustHeading(turnDelta);
   }
   
+  motors.update();
+  }
+}
+
+void state_machine::stateShootPuck() {
+  radio.updateXBeePosition(); // update from xbee
+
+  // robot current position on field
+  const double* pos = radio.currentPosition();
+  double robotX = pos[0];
+  double robotY = pos[1];
+
+  // robot to goal line of movement
+  double dx = goalX - robotX;
+  double dy = goalY - robotY;
+
+  // distance to goal
+  /*double distanceGoal = sqrt(dx * dx + dy * dy);*/
+
+  double desiredHeading = atan2(dy, dx) * 180/ PI; 
+  double currentYaw = motors.getYaw(); // robot current heading
+
+  double headingError = desiredHeading - currentYaw; // error of robot facing vs where goal is
+
+  // shortest turn
+  if (headingError > 180.0) headingError -= 360.0;
+  if (headingError < -180.0) headingError += 360.0;
+
+  float turnDelta = 0.2f * headingError; // steering correction
+
+  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA; // limit overcorrection
+  if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
+
+  // shoot the puck
+  /*if (distanceGoal < 5)_____*/
+
+  motors.setBaseSpeed(FAST_SPEED);
+  motors.adjustHeading(turnDelta);
   motors.update();
 }
