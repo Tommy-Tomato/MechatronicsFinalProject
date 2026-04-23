@@ -34,7 +34,7 @@ bool state_machine::detectOrange() {
   int bestIndex = -1;
   int bestArea = 0;
 
-  for (int i = 0; i < pixy.ccc.numBlocks; i++) {
+  for (uint16_t i = 0; i < pixy.ccc.numBlocks; i++) {
     if (pixy.ccc.blocks[i].m_signature == SIG_ORANGE) {
       int area = pixy.ccc.blocks[i].m_width * pixy.ccc.blocks[i].m_height;
 
@@ -112,6 +112,7 @@ void state_machine::stateFollowPuck() {
 
     state = SHOOT_PUCK;
     return;
+  }
   
   if (!orangeSeen) {
     if (millis() - lastSeenTime > LOST_TIMEOUT) {
@@ -133,16 +134,15 @@ void state_machine::stateFollowPuck() {
 
   // if nearly centered, drive mostly straight
   if (abs(pixelError) >= CENTER_TOL) {
-  float turnDelta = -TURN_GAIN * pixelError;
+    float turnDelta = -TURN_GAIN * pixelError;
 
-  if (turnDelta > MAX_TURN_DELTA) {turnDelta = MAX_TURN_DELTA;}
-  if (turnDelta < -MAX_TURN_DELTA) {turnDelta = -MAX_TURN_DELTA;}
+    if (turnDelta > MAX_TURN_DELTA) {turnDelta = MAX_TURN_DELTA;}
+    if (turnDelta < -MAX_TURN_DELTA) {turnDelta = -MAX_TURN_DELTA;}
 
-  motors.adjustHeading(turnDelta);
+    motors.adjustHeading(turnDelta);
   }
   
   motors.update();
-  }
 }
 
 void state_machine::stateShootPuck() {

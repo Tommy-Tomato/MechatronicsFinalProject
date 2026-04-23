@@ -1,3 +1,6 @@
+#ifndef XBEE_H
+#define XBEE_H
+
 #include <Arduino.h>
 
 class xbee {
@@ -36,4 +39,6 @@ public:
     const double* leftGoalPosition();
     const double* rightGoalPosition();
 };
+
+    #endif
 
