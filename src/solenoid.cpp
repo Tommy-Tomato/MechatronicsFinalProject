@@ -51,42 +51,16 @@ void Solenoid::triggerPing() {
     pinMode(pingPin, INPUT);
 }
 
-unsigned long Solenoid::readEchoTime() {
+float Solenoid::getDistanceCm() {
     triggerPing();
 
-    unsigned long timeout = micros();
-
-    // wait for echo to go HIGH
-    while (digitalRead(pingPin) == LOW) {
-        if (micros() - timeout > 30000) {
-            return 0;  // timeout
-        }
-    }
-
-    unsigned long tStart = micros();
-
-    // wait for echo to go LOW
-    while (digitalRead(pingPin) == HIGH) {
-        if (micros() - tStart > 30000) {
-            return 0;  // timeout
-        }
-    }
-
-    unsigned long tEnd = micros();
-
-    return (tEnd - tStart);
-}
-
-float Solenoid::getDistanceCm() {
-    unsigned long duration = readEchoTime();
+    unsigned long duration = pulseIn(pingPin, HIGH, 30000); //30 ms timeout if not detected then hasPuck returns falso
 
     if (duration == 0) {
-        return -1.0;   // no reading / too far / timeout
+        return -1.0;
     }
 
-    // speed of sound ~0.0343 cm/us
-    float distance = (duration * 0.0343f) / 2.0f;
-    return distance;
+    return (duration * 0.034) / 2.0;
 }
 
 bool Solenoid::hasPuck() {

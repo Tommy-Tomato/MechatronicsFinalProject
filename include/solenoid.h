@@ -22,7 +22,6 @@ private:
 
     // Internal helpers
     void triggerPing();
-    unsigned long readEchoTime();
     float getDistanceCm();
 
 public:
