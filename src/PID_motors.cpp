@@ -23,6 +23,7 @@ Motor::Motor() : bno(55, 0x28, &Wire) {
     turnGoalYaw = 0;
     turning = false;
     turnStartTime = 0;
+    
 }
 
 // ================= INITIALIZATION =================
@@ -40,6 +41,7 @@ void Motor::initMotors() {
 
     // Capture initial heading
     setpoint = getYaw();
+    headingOffset = getYaw();
     previousTime = millis();
 
 

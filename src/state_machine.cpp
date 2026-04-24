@@ -177,50 +177,52 @@ void state_machine::stateFollowPuck() {
 }
 
 void state_machine::stateShootPuck() {
-  radio.updateXBeePosition(); // update from xbee
+  radio.updateXBeePosition();
 
-  // robot current position on field
+  // ===== robot position =====
   const double* pos = radio.currentPosition();
   double robotX = pos[0];
   double robotY = pos[1];
 
-  // robot to goal line of movement
+  // ===== vector to goal =====
   double dx = goalX - robotX;
   double dy = goalY - robotY;
 
-  // distance to goal
-  /*double distanceGoal = sqrt(dx * dx + dy * dy);*/
+  // ===== field-centric desired heading =====
+  double desiredHeading = atan2(dy, dx) * 180.0 / PI;
+  if (desiredHeading < 0) desiredHeading += 360.0;
 
-  double desiredHeading = atan2(dy,dx) * 180/ PI; 
-  double currentYaw = motors.getYaw(); // robot current heading
+  // ===== IMU heading corrected by offset =====
+  double currentYaw = motors.getYaw() - motors.headingOffset;
 
-  double headingError = desiredHeading - currentYaw; // error of robot facing vs where goal is
+  // wrap currentYaw into [0, 360)
+  while (currentYaw < 0) currentYaw += 360.0;
+  while (currentYaw >= 360.0) currentYaw -= 360.0;
 
-  // shortest turn
-  if (headingError > 180.0) headingError -= 360.0;
-  if (headingError < -180.0) headingError += 360.0;
+  // ===== shortest angular error [-180, 180] =====
+  double headingError = desiredHeading - currentYaw;
+  headingError = fmod(headingError + 540.0, 360.0) - 180.0;
 
   Serial.print("heading error: ");
   Serial.print(headingError);
-  Serial.print("|desired: ");
+  Serial.print(" | desired: ");
   Serial.print(desiredHeading);
-  Serial.print("|actual: ");
+  Serial.print(" | actual: ");
   Serial.println(currentYaw);
-  delay(200);
 
-  float turnDelta = 0.2f * headingError; // steering correction
+  // ===== control law =====
+  float turnDelta = 0.2f * headingError;
 
-  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA; // limit overcorrection
+  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
   if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
 
-  // shoot the puck
-  /*if (distanceGoal < 5)_____*/
-
+  // ===== drive toward goal =====
   motors.setBaseSpeed(FAST_SPEED);
   motors.adjustHeading(turnDelta);
   motors.update();
 
-  if (readPing() > 15) {
+  // ===== fallback: puck lost =====
+  if (readPing() > 15 || readPing() < 0) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
   }

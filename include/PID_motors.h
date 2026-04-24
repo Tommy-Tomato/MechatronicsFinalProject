@@ -10,6 +10,8 @@ private:
     DualMAX14870MotorShield motors;
     Adafruit_BNO055 bno;
 
+    
+
     // PID variables
     double setpoint;
     double Kp, Ki, Kd;
@@ -30,6 +32,7 @@ private:
 
 public:
     Motor();
+    double headingOffset;
 
     double getYaw();
 
