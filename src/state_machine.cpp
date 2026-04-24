@@ -189,7 +189,7 @@ void state_machine::stateShootPuck() {
   double dy = goalY - robotY;
 
   // ===== field-centric desired heading =====
-  double desiredHeading = atan2(dy, dx) * 180.0 / PI;
+  double desiredHeading = (atan2(dy, dx) * 180.0 / PI);
   if (desiredHeading < 0) desiredHeading += 360.0;
 
   // ===== IMU heading corrected by offset =====
@@ -203,6 +203,10 @@ void state_machine::stateShootPuck() {
   double headingError = desiredHeading - currentYaw;
   headingError = fmod(headingError + 540.0, 360.0) - 180.0;
 
+  Serial.print("X: ");
+Serial.print(robotX);
+Serial.print(" Y: ");
+Serial.println(robotY);
   Serial.print("heading error: ");
   Serial.print(headingError);
   Serial.print(" | desired: ");
