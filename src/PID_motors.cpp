@@ -64,7 +64,7 @@ double Motor::angleDiff(double target, double current) {
 
 // ================= PID CONTROL =================
 void Motor::PID_control() {
-    double yaw = getYaw();
+    double yaw = getYaw() - headingOffset;
 
     unsigned long currentTime = millis();
     double dt = (currentTime - previousTime) / 1000.0;
@@ -111,7 +111,7 @@ void Motor::update() {
 
 // ================= RESET HEADING =================
 void Motor::resetPIDHeading() {
-    setpoint = getYaw();
+    setpoint = getYaw() - headingOffset;
 
     error = 0;
     previousError = 0;
@@ -135,7 +135,7 @@ void Motor::setTurn(double targetYaw) {
 }
 
 void Motor::handleTurn() {
-    double currentYaw = getYaw();
+    double currentYaw = getYaw() - headingOffset;
     double remaining = angleDiff(turnGoalYaw, currentYaw);
 
     if (abs(remaining) < 3.0) {
@@ -170,4 +170,12 @@ void Motor::adjustHeading(double deltaYaw) {
 
     if (setpoint >= 360.0) setpoint -= 360.0;
     if (setpoint < 0.0) setpoint += 360.0;
+}
+
+void Motor::setHeading(double targetYaw) {
+    setpoint = targetYaw;
+    if (setpoint < 0) setpoint += 360;
+    if (setpoint >= 360) setpoint -= 360;
+    Serial.print("setpoint: ");
+    Serial.println(setpoint);
 }

@@ -43,6 +43,7 @@ public:
 
     void adjustHeading (double deltaYaw);
     void setBaseSpeed (int speed);
+    void setHeading(double targetYaw);
 };
 
 #endif

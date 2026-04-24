@@ -12,7 +12,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       CENTER_TOL(15),
       FAST_SPEED(165),
       SLOW_SPEED(90),
-      TURN_GAIN(0.25f),
+      TURN_GAIN(0.15f),
       MAX_TURN_DELTA(15.0f),
       CLOSE_AREA(5200),
       LOST_TIMEOUT(250),
@@ -49,8 +49,8 @@ float state_machine::readPing() {
 
   float distance = pulseDuration * 0.0343f / 2.0f;
 
-  Serial.print("ping: ");
-  Serial.println(distance);
+  //Serial.print("ping: ");
+  //Serial.println(distance);
 
   return distance;
 }
@@ -191,42 +191,18 @@ void state_machine::stateShootPuck() {
   // ===== field-centric desired heading =====
   double desiredHeading = (atan2(dy, dx) * 180.0 / PI);
   if (desiredHeading < 0) desiredHeading += 360.0;
+  desiredHeading = 360.0 - desiredHeading;
 
-  // ===== IMU heading corrected by offset =====
-  double currentYaw = motors.getYaw() - motors.headingOffset;
-
-  // wrap currentYaw into [0, 360)
-  while (currentYaw < 0) currentYaw += 360.0;
-  while (currentYaw >= 360.0) currentYaw -= 360.0;
-
-  // ===== shortest angular error [-180, 180] =====
-  double headingError = desiredHeading - currentYaw;
-  headingError = fmod(headingError + 540.0, 360.0) - 180.0;
-
-  Serial.print("X: ");
-Serial.print(robotX);
-Serial.print(" Y: ");
-Serial.println(robotY);
-  Serial.print("heading error: ");
-  Serial.print(headingError);
   Serial.print(" | desired: ");
   Serial.print(desiredHeading);
-  Serial.print(" | actual: ");
-  Serial.println(currentYaw);
 
-  // ===== control law =====
-  float turnDelta = 0.2f * headingError;
 
-  if (turnDelta > MAX_TURN_DELTA) turnDelta = MAX_TURN_DELTA;
-  if (turnDelta < -MAX_TURN_DELTA) turnDelta = -MAX_TURN_DELTA;
-
-  // ===== drive toward goal =====
   motors.setBaseSpeed(FAST_SPEED);
-  motors.adjustHeading(turnDelta);
+  motors.setHeading(desiredHeading);
   motors.update();
 
   // ===== fallback: puck lost =====
-  if (readPing() > 15 || readPing() < 0) {
+  if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
   }
