@@ -21,7 +21,6 @@ private:
 
     // Turning
     double turnGoalYaw;
-    bool turning;
     unsigned long turnStartTime;
 
     // Helpers
@@ -32,6 +31,7 @@ private:
 
 public:
     Motor();
+    bool turning;
     double headingOffset;
 
     double getYaw();

@@ -41,6 +41,7 @@ int orangeArea;
 unsigned long lastSeenTime;
 unsigned long lastSearchUpdate;
 bool searchDirRight;
+long lastSpotted;
 
 // === ping and goal var ===
   float pingDistance;
@@ -51,6 +52,8 @@ bool detectOrange();
 float readPing();        
 void readGoalFromXBee();
 double getHeadingError(double dx, double dy);
+
+double searchYaw;
 
 public:
     state_machine(XBeeRadio& r, Motor& m);    

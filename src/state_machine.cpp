@@ -7,6 +7,7 @@ Pixy2 pixy;
 state_machine::state_machine(XBeeRadio& r, Motor& m)
     : radio(r), 
       motors(m),
+      lastSpotted(0),
       SIG_ORANGE(1),
       CAM_CENTER_X(158),
       CENTER_TOL(15),
@@ -25,6 +26,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
+        searchYaw = motors.getYaw();
 }
 
 // PING pings and data
@@ -67,6 +69,7 @@ bool state_machine::detectOrange() {
   for (uint16_t i = 0; i < pixy.ccc.numBlocks; i++) {
     if (pixy.ccc.blocks[i].m_signature == SIG_ORANGE) {
       int area = pixy.ccc.blocks[i].m_width * pixy.ccc.blocks[i].m_height;
+      lastSpotted = millis();
 
       // track biggest orange object
       if (area > bestArea) {
@@ -117,18 +120,31 @@ void state_machine::stateSearchPuck() {
     return;
   }
 
-  // keep moving slowly while sweeping heading
-  motors.setBaseSpeed(SLOW_SPEED);
+  if (millis() - lastSpotted > 4000) {
 
-  if (millis() - lastSearchUpdate > 700) {
-    if (searchDirRight) {
-      motors.adjustHeading(70);
-    } else {
-      motors.adjustHeading(-70);
+    Serial.println("nothing found, turning...");
+    double curr = motors.getYaw() - motors.headingOffset;
+    Serial.print("curr: ");
+    Serial.print(curr);
+    motors.setTurn(curr + 180);
+    lastSpotted = millis();
+
+  } else if (!motors.turning) {
+    //Serial.println("searching...");
+    // keep moving slowly while sweeping heading
+    motors.setBaseSpeed(SLOW_SPEED);
+
+    if (millis() - lastSearchUpdate > 700) {
+      
+      if (searchDirRight) {
+        motors.adjustHeading(45);
+      } else {
+        motors.adjustHeading(-90);
+      }
+
+      searchDirRight = !searchDirRight;
+      lastSearchUpdate = millis();
     }
-
-    searchDirRight = !searchDirRight;
-    lastSearchUpdate = millis();
   }
 
   motors.update();

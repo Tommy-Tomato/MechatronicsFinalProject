@@ -123,22 +123,24 @@ void Motor::resetPIDHeading() {
 }
 
 // ================= TURN CONTROL =================
-//EDIT SO THAT IT LOOPS, CURRENTLY ONLY DOES 1 RUNTHROUGH
 void Motor::setTurn(double targetYaw) {
 
-    turnGoalYaw = setpoint + targetYaw;
+    turnGoalYaw = targetYaw;
     if (turnGoalYaw >= 360) turnGoalYaw -= 360;
     if (turnGoalYaw < 0) turnGoalYaw += 360;
-    
+    Serial.print("| turnGoalYaw: ");
+    Serial.print(turnGoalYaw);
     turning = true;
     turnStartTime = millis();
 }
 
 void Motor::handleTurn() {
+    setpoint = turnGoalYaw;
     double currentYaw = getYaw() - headingOffset;
     double remaining = angleDiff(turnGoalYaw, currentYaw);
+    Serial.println(remaining);
 
-    if (abs(remaining) < 3.0) {
+    if (millis() - turnStartTime > 750) {
         turning = false;
         resetPIDHeading();
         return;
@@ -147,11 +149,7 @@ void Motor::handleTurn() {
     int speed = constrain(abs(remaining) * 2.5, 50, 105);
 
     if (remaining > 0) {
-        motors.setM1Speed(-speed);
-        motors.setM2Speed(speed);
-    } else {
-        motors.setM1Speed(speed);
-        motors.setM2Speed(-speed);
+        PID_control();
     }
 }
 
