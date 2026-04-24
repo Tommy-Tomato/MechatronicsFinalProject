@@ -191,7 +191,7 @@ void state_machine::stateShootPuck() {
   // distance to goal
   /*double distanceGoal = sqrt(dx * dx + dy * dy);*/
 
-  double desiredHeading = abs(atan2(dy, dx) * 180/ PI); 
+  double desiredHeading = atan2(dy,dx) * 180/ PI; 
   double currentYaw = motors.getYaw(); // robot current heading
 
   double headingError = desiredHeading - currentYaw; // error of robot facing vs where goal is
@@ -203,10 +203,10 @@ void state_machine::stateShootPuck() {
   Serial.print("heading error: ");
   Serial.print(headingError);
   Serial.print("|desired: ");
-  Serial.println(desiredHeading);
-  Serial.println("|actual: ");
+  Serial.print(desiredHeading);
+  Serial.print("|actual: ");
   Serial.println(currentYaw);
-  delay(50);
+  delay(200);
 
   float turnDelta = 0.2f * headingError; // steering correction
 
