@@ -5,7 +5,6 @@
 
 Motor motors;
 XBeeRadio comms;
-state_machine state;
 extern Pixy2 pixy;
 state_machine state(comms, motors);
 
@@ -22,10 +21,11 @@ void setup() {
 }
   
 void loop() {
-  if (comms.gameStarted()) {
+  //comms.updateXBeePosition();
+  //if (comms.gameStarted()) {
     state.updateStateMachine();
-  } else {
-    motors.stopMotors();
-  }
+  //} else {
+  //  motors.stopMotors();
+  //}
 }
 

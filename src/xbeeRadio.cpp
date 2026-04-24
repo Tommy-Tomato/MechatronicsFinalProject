@@ -96,7 +96,7 @@ bool XBeeRadio::parseBroadcast(const char* buf) {
     }
   }
 
-  return foundSelf;
+  return true;
 }
 
 void XBeeRadio::processXBeeMessage() {
@@ -106,10 +106,10 @@ void XBeeRadio::processXBeeMessage() {
 
   if (parseBroadcast(rxBuffer)) {
     xbeeHasValidPosition = true;
-    Serial.print("XBee position: ");
-    Serial.print(currPosition[0]);
-    Serial.print(", ");
-    Serial.println(currPosition[1]);
+    //Serial.print("XBee position: ");
+    //Serial.print(currPosition[0]);
+    //Serial.print(", ");
+    //Serial.println(currPosition[1]);
   }
 
   rxIndex = 0;
@@ -119,8 +119,9 @@ void XBeeRadio::updateXBeePosition() {
   while (Serial1.available()) {
     char c = Serial1.read();
     lastRxTime = millis();
-    //Serial.println(c);
+    //Serial.print(c);
     if (c == ';') {
+      //Serial.println();
       if (rxIndex < (int)(sizeof(rxBuffer) - 1)) {
         rxBuffer[rxIndex++] = c;
       }

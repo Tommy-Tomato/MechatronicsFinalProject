@@ -50,6 +50,7 @@ bool searchDirRight;
 bool detectOrange();
 float readPing();        
 void readGoalFromXBee();
+double getHeadingError(double dx, double dy);
 
 public:
     state_machine(XBeeRadio& r, Motor& m);    

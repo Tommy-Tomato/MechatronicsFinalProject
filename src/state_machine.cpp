@@ -34,21 +34,27 @@ float state_machine::readPing() {
   pinMode(PINGpin, OUTPUT);
   digitalWrite(PINGpin, LOW);
   delayMicroseconds(2);
+
   digitalWrite(PINGpin, HIGH);
-  delayMicroseconds(5);
+  delayMicroseconds(10);
   digitalWrite(PINGpin, LOW);
 
   pinMode(PINGpin, INPUT);
-  long pulseDuration = pulseIn(PINGpin, HIGH, 30000);
+
+  long pulseDuration = pulseIn(PINGpin, HIGH, 15000);
 
   if (pulseDuration == 0) {
     return -1.0f;
   }
 
   float distance = pulseDuration * 0.0343f / 2.0f;
+
+  Serial.print("ping: ");
+  Serial.println(distance);
+
   return distance;
-  Serial.println(distance); // debug
 }
+
 
 // detecting orange
 bool state_machine::detectOrange() {
@@ -129,7 +135,7 @@ void state_machine::stateSearchPuck() {
 }
 
 void state_machine::stateFollowPuck() {
-  if (pingDistance > 0 && pingDistance <= 5.0f) {
+  if (pingDistance > 0 && pingDistance <= 10.0f) {
     Serial.println("puck is grabbed, going to score");
 
     const double* goal = radio.leftGoalPosition(); // left or right depending on starting position
@@ -149,7 +155,6 @@ void state_machine::stateFollowPuck() {
   }
 
   int pixelError = orangeX - CAM_CENTER_X;
-  Serial.println(pixelError);
 
   // go faster when puck is farther away, slower when very close
   if (orangeArea > CLOSE_AREA) {
@@ -186,7 +191,7 @@ void state_machine::stateShootPuck() {
   // distance to goal
   /*double distanceGoal = sqrt(dx * dx + dy * dy);*/
 
-  double desiredHeading = atan2(dy, dx) * 180/ PI; 
+  double desiredHeading = abs(atan2(dy, dx) * 180/ PI); 
   double currentYaw = motors.getYaw(); // robot current heading
 
   double headingError = desiredHeading - currentYaw; // error of robot facing vs where goal is
@@ -194,6 +199,14 @@ void state_machine::stateShootPuck() {
   // shortest turn
   if (headingError > 180.0) headingError -= 360.0;
   if (headingError < -180.0) headingError += 360.0;
+
+  Serial.print("heading error: ");
+  Serial.print(headingError);
+  Serial.print("|desired: ");
+  Serial.println(desiredHeading);
+  Serial.println("|actual: ");
+  Serial.println(currentYaw);
+  delay(50);
 
   float turnDelta = 0.2f * headingError; // steering correction
 
@@ -206,4 +219,9 @@ void state_machine::stateShootPuck() {
   motors.setBaseSpeed(FAST_SPEED);
   motors.adjustHeading(turnDelta);
   motors.update();
+
+  if (readPing() > 15) {
+    Serial.println("puck lost");
+    state = SEARCH_PUCK;
+  }
 }
