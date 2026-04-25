@@ -53,7 +53,6 @@ float readPing();
 void readGoalFromXBee();
 double getHeadingError(double dx, double dy);
 
-double searchYaw;
 
 public:
     state_machine(XBeeRadio& r, Motor& m);    
@@ -61,6 +60,7 @@ public:
     void stateSearchPuck();
     void stateFollowPuck();
     void stateShootPuck();
+    bool avoidWall();
 };
 
 #endif

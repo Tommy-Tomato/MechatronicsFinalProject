@@ -11,9 +11,9 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       SIG_ORANGE(1),
       CAM_CENTER_X(158),
       CENTER_TOL(15),
-      FAST_SPEED(165),
-      SLOW_SPEED(90),
-      TURN_GAIN(0.15f),
+      FAST_SPEED(170),
+      SLOW_SPEED(80),
+      TURN_GAIN(0.1f),
       MAX_TURN_DELTA(15.0f),
       CLOSE_AREA(5200),
       LOST_TIMEOUT(250),
@@ -26,7 +26,6 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
-        searchYaw = motors.getYaw();
 }
 
 // PING pings and data
@@ -94,7 +93,14 @@ bool state_machine::detectOrange() {
 
 // switches
 void state_machine::updateStateMachine() {
-  radio.updateXBeePosition();
+  radio.updateXBeePosition();  
+
+  if (avoidWall()) {
+    Serial.println("avoiding walls");  
+    return;
+  }
+  
+  
   detectOrange();
   pingDistance = readPing();
 
@@ -120,16 +126,15 @@ void state_machine::stateSearchPuck() {
     return;
   }
 
-  if (millis() - lastSpotted > 4000) {
+  // if (millis() - lastSpotted > 4000) {
 
-    Serial.println("nothing found, turning...");
-    double curr = motors.getYaw() - motors.headingOffset;
-    Serial.print("curr: ");
-    Serial.print(curr);
-    motors.setTurn(curr + 180);
-    lastSpotted = millis();
+  //   Serial.println("nothing found, turning...");
+  //   double target;
+  //   target = motors.getYaw() + 180;
+  //   motors.setTurn(target);
+  //   lastSpotted = millis();
 
-  } else if (!motors.turning) {
+  // } else if (!motors.turning) {
     //Serial.println("searching...");
     // keep moving slowly while sweeping heading
     motors.setBaseSpeed(SLOW_SPEED);
@@ -137,15 +142,15 @@ void state_machine::stateSearchPuck() {
     if (millis() - lastSearchUpdate > 700) {
       
       if (searchDirRight) {
-        motors.adjustHeading(45);
+        motors.adjustHeading(20);
       } else {
-        motors.adjustHeading(-90);
+        motors.adjustHeading(-40);
       }
 
       searchDirRight = !searchDirRight;
       lastSearchUpdate = millis();
     }
-  }
+  //}
 
   motors.update();
 }
@@ -217,9 +222,69 @@ void state_machine::stateShootPuck() {
   motors.setHeading(desiredHeading);
   motors.update();
 
+  if (sqrt(pow(dx,2)+pow(dy,2)) < 25) {
+    //SHOOT!
+    motors.stopMotors();
+    delay(2000);
+  }
+
   // ===== fallback: puck lost =====
   if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
   }
 }
+
+bool state_machine::avoidWall() {
+
+  
+
+  const double* pos = radio.currentPosition();
+  double x = pos[0];
+  Serial.print("x: ");
+  Serial.print(x);
+  double y = pos[1];
+  Serial.print("| y: ");
+  Serial.println(y);
+
+  // field min and max determined by these recorded coordinates
+  // (8,21) bottom left corner
+  // (99, 22) bottom right corner
+  // (99, 211) top right corner
+  // (11, 210) top left corner
+
+  const int fieldX_min = 8;
+  const int fieldX_max = 99;
+  const int fieldY_min = 21;
+  const int fieldY_max = 210;
+  
+  const int wallBuffer = 13; // change depending on when we want to start moving away from arena walls 
+  // (this is the safe zone buffer area)
+
+
+  double desiredYaw = motors.getYaw();
+
+  // make heading away from closest wall
+  if (x < fieldX_min + wallBuffer) {
+    desiredYaw = motors.headingOffset; // drive towards +x
+    Serial.println("min x");
+  }
+  else if (x > fieldX_max - wallBuffer) {
+    desiredYaw = motors.headingOffset + 180; // drive towards -x
+    Serial.println("max x");
+  }
+  else if (y < fieldY_min + wallBuffer) {
+    desiredYaw = motors.headingOffset + 270; // drive toward +y
+    Serial.println("min y");
+  }
+  else if (y > fieldY_max - wallBuffer) {
+    desiredYaw = motors.headingOffset + 90; // drive towards -y
+    Serial.println("max y");
+  }
+  else {
+    return false;
+  }
+  motors.setHeading(desiredYaw);
+  motors.update();
+  return true;
+  }

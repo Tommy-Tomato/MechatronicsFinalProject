@@ -140,7 +140,7 @@ void Motor::handleTurn() {
     double remaining = angleDiff(turnGoalYaw, currentYaw);
     Serial.println(remaining);
 
-    if (millis() - turnStartTime > 750) {
+    if (remaining < 3 || millis() - turnStartTime > 1000) {
         turning = false;
         resetPIDHeading();
         return;
