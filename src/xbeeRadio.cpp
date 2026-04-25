@@ -119,9 +119,9 @@ void XBeeRadio::updateXBeePosition() {
   while (Serial1.available()) {
     char c = Serial1.read();
     lastRxTime = millis();
-    Serial.print(c);
+    //Serial.print(c);
     if (c == ';') {
-      Serial.println();
+      //Serial.println();
       if (rxIndex < (int)(sizeof(rxBuffer) - 1)) {
         rxBuffer[rxIndex++] = c;
       }

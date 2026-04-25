@@ -4,7 +4,7 @@
 Motor::Motor() : bno(55, 0x28, &Wire) {
     // PID gains
     Kp = 4.5;
-    Ki = 0.08;
+    Ki = 0.2;
     Kd = 1.5;
 
     // PID state
@@ -20,9 +20,11 @@ Motor::Motor() : bno(55, 0x28, &Wire) {
     baseSpeed = 120;
 
     // Turning
-    turnGoalYaw = 0;
+    turnStartYaw = 0;
     turning = false;
     turnStartTime = 0;
+    accumulatedTurn = 0;
+    
     
 }
 
@@ -97,7 +99,7 @@ void Motor::PID_control() {
     rightSpeed = constrain(rightSpeed, -300, 300);
 
     // Apply speeds
-    motors.setM2Speed(leftSpeed); // left motor
+    motors.setM2Speed(-leftSpeed); // left motor
     motors.setM1Speed(-rightSpeed); // right motor
 }
 
@@ -123,33 +125,32 @@ void Motor::resetPIDHeading() {
 }
 
 // ================= TURN CONTROL =================
-void Motor::setTurn(double targetYaw) {
+void Motor::tankTurn() {
 
-    turnGoalYaw = targetYaw;
-    if (turnGoalYaw >= 360) turnGoalYaw -= 360;
-    if (turnGoalYaw < 0) turnGoalYaw += 360;
-    Serial.print("| turnGoalYaw: ");
-    Serial.print(turnGoalYaw);
+    turnStartYaw = getYaw() - headingOffset;
     turning = true;
     turnStartTime = millis();
+    accumulatedTurn = 0;
 }
 
 void Motor::handleTurn() {
-    setpoint = turnGoalYaw;
     double currentYaw = getYaw() - headingOffset;
-    double remaining = angleDiff(turnGoalYaw, currentYaw);
-    Serial.println(remaining);
 
-    if (remaining < 3 || millis() - turnStartTime > 1000) {
+    double delta = angleDiff(currentYaw, turnStartYaw);
+    accumulatedTurn += abs(delta);
+
+    turnStartYaw = currentYaw;
+
+    Serial.println(accumulatedTurn);
+
+    motors.setSpeeds(-100, 100);
+
+    if (accumulatedTurn >= 340) {
+        Serial.println("finished full scan");
         turning = false;
         resetPIDHeading();
-        return;
-    }
-
-    int speed = constrain(abs(remaining) * 2.5, 50, 105);
-
-    if (remaining > 0) {
-        PID_control();
+        stopMotors();
+        delay(50);
     }
 }
 
