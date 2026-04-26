@@ -169,25 +169,38 @@ void state_machine::stateFollowPuck() {
     return;
   }
 
-  int pixelError = orangeX - CAM_CENTER_X;
+    // ===== raw pixel error =====
+  int error = orangeX - CAM_CENTER_X;
 
-  // go faster when puck is farther away, slower when very close
+  // ===== deadband (kills jitter near center) =====
+  if (abs(error) < 8) {
+    error = 0;
+  }
+
+  // ===== smooth error (VERY important for stability) =====
+  static float filteredError = 0;
+  filteredError = 0.8f * filteredError + 0.2f * error;
+
+  // ===== speed control (slower when close) =====
   if (orangeArea > CLOSE_AREA) {
-    motors.setBaseSpeed(90);;
+    motors.setBaseSpeed(80);
   } else {
     motors.setBaseSpeed(FAST_SPEED);
   }
 
-  // if nearly centered, drive mostly straight
-  if (abs(pixelError) >= CENTER_TOL) {
-    float turnDelta = -TURN_GAIN * pixelError;
+  // ===== compute smooth heading correction =====
+  float turnCorrection = TURN_GAIN * filteredError;
 
-    if (turnDelta > MAX_TURN_DELTA) {turnDelta = MAX_TURN_DELTA;}
-    if (turnDelta < -MAX_TURN_DELTA) {turnDelta = -MAX_TURN_DELTA;}
+  // ===== compute desired absolute heading =====
+  double currentHeading = motors.getYaw() - motors.headingOffset;
+  double desiredHeading = currentHeading - turnCorrection;
 
-    motors.adjustHeading(turnDelta);
-  }
-  
+  // normalize [0, 360)
+  if (desiredHeading < 0) desiredHeading += 360.0;
+  if (desiredHeading >= 360.0) desiredHeading -= 360.0;
+
+  motors.setHeading(desiredHeading);
+
   motors.update();
 }
 
