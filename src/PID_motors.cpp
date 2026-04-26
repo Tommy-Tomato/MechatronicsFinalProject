@@ -4,8 +4,8 @@
 Motor::Motor() : bno(55, 0x28, &Wire) {
     // PID gains
     Kp = 7;
-    Ki = 0.1;
-    Kd = 0;
+    Ki = 0.3;
+    Kd = 0.1;
 
     // PID state
     setpoint = 0;
@@ -175,6 +175,6 @@ void Motor::setHeading(double targetYaw) {
     setpoint = targetYaw;
     if (setpoint < 0) setpoint += 360;
     if (setpoint >= 360) setpoint -= 360;
-    Serial.print("setpoint: ");
-    Serial.println(setpoint);
+    //Serial.print("setpoint: ");
+    //Serial.println(setpoint);
 }

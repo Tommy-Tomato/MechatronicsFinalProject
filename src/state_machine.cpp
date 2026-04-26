@@ -1,17 +1,17 @@
 #include "state_machine.h"
-#include "xbeeRadio.h"
-#include "PID_motors.h"
+#include "Solenoid.h"
 
 Pixy2 pixy;
 
-state_machine::state_machine(XBeeRadio& r, Motor& m)
+state_machine::state_machine(XBeeRadio& r, Motor& m, Solenoid& s)
     : radio(r), 
       motors(m),
+      launcher(s),
       lastSpotted(0),
       SIG_ORANGE(1),
       CAM_CENTER_X(158),
       CENTER_TOL(15),
-      FAST_SPEED(170),
+      FAST_SPEED(200),
       SLOW_SPEED(80),
       TURN_GAIN(0.1f),
       MAX_TURN_DELTA(15.0f),
@@ -22,7 +22,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m)
       orangeX(CAM_CENTER_X),
       orangeArea(0),
       lastSeenTime(0),
-      lastSearchUpdate(0),
+      shotStart(0),
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
@@ -94,6 +94,7 @@ bool state_machine::detectOrange() {
 
 // switches
 void state_machine::updateStateMachine() {
+  launcher.update();
   radio.updateXBeePosition();  
   //Serial.print("current heading: ");
   //Serial.println(motors.getYaw() - motors.headingOffset);
@@ -109,6 +110,10 @@ void state_machine::updateStateMachine() {
   }
 
   pingDistance = readPing();
+
+  if (millis() - shotStart > 500) {
+    digitalWrite(48,LOW);
+  }
 
   switch (state) {
     case SEARCH_PUCK:
@@ -134,7 +139,7 @@ void state_machine::stateSearchPuck() {
     return;
   }
     if (!motors.turning) {
-      if (millis() - lastSpotted > 5000) {
+      if (millis() - lastSpotted > 6500) {
 
         Serial.println("nothing found, turning...");
         motors.tankTurn();
@@ -152,7 +157,7 @@ void state_machine::stateSearchPuck() {
 void state_machine::stateFollowPuck() {
   motors.turning = false;
 
-  if (pingDistance > 0 && pingDistance <= 10.0f) {
+  if (pingDistance > 0 && pingDistance <= 7.5f) {
     Serial.println("puck is grabbed, going to score");
 
     const double* goal = radio.leftGoalPosition(); // left or right depending on starting position
@@ -211,7 +216,6 @@ void state_machine::stateFollowPuck() {
 }
 void state_machine::stateShootPuck() {
   radio.updateXBeePosition();
-  Serial.print("shooting!!");
 
   // ===== robot position =====
   const double* pos = radio.currentPosition();
@@ -235,12 +239,15 @@ void state_machine::stateShootPuck() {
   motors.setHeading(desiredHeading);
   motors.update();
 
-  Serial.println(sqrt(pow(dx,2)+pow(dy,2)));
-
-  if (sqrt(pow(dx,2)+pow(dy,2)) < 40) {
-    motors.stopMotors();
-    Serial.println("In shooting range - stopping");
-    delay(2000);
+  Serial.print("Distance: ");
+  Serial.print(sqrt(pow(dx,2)+pow(dy,2)));
+  Serial.print("| error: ");
+  Serial.println(abs(desiredHeading - (motors.getYaw() - motors.headingOffset)));
+  if (sqrt(pow(dx,2)+pow(dy,2)) < 55 && 
+  abs(desiredHeading - (motors.getYaw() - motors.headingOffset)) < 25) {
+    Serial.println("In shooting range");
+    shotStart = millis();
+    digitalWrite(48,HIGH);
     return;
   }
 
@@ -253,7 +260,7 @@ void state_machine::stateShootPuck() {
 
 bool state_machine::avoidWall() {
 
-  static bool avoiding = false;
+  //static bool avoiding = false;
 
   const double* pos = radio.currentPosition();
   double x = pos[0];
@@ -264,27 +271,33 @@ bool state_machine::avoidWall() {
   const int fieldY_min = 21;
   const int fieldY_max = 210;
 
-  const int wallBuffer = 13;
+  int wallBuffer = 0;
+  if (state == SEARCH_PUCK) {
+    wallBuffer = 13;
+  } else {
+    wallBuffer = 28;
+  }
+  
 
   double desiredYaw = motors.getYaw();
 
   if (x < fieldX_min + wallBuffer) {
-    desiredYaw = motors.headingOffset;
+    desiredYaw = motors.headingOffset + 285;
     Serial.println("min x");
     lastSpotted = millis();
   }
   else if (x > fieldX_max - wallBuffer) {
-    desiredYaw = motors.headingOffset + 180;
+    desiredYaw = motors.headingOffset + 105;
     Serial.println("max x");
     lastSpotted = millis();
   }
   else if (y < fieldY_min + wallBuffer) {
-    desiredYaw = motors.headingOffset + 270;
+    desiredYaw = motors.headingOffset + 195;
     Serial.println("min y");
     lastSpotted = millis();
   }
   else if (y > fieldY_max - wallBuffer) {
-    desiredYaw = motors.headingOffset + 90;
+    desiredYaw = motors.headingOffset + 15;
     Serial.println("max y");
     lastSpotted = millis();
   }

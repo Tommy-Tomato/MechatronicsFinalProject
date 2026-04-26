@@ -7,7 +7,9 @@
 #include <Pixy2.h>
 #include "PID_motors.h"
 #include "xbeeRadio.h"
+#include "Solenoid.h"
 #include <Ultrasonic.h>
+
 
 class state_machine {
 private:
@@ -26,6 +28,7 @@ const unsigned long LOST_TIMEOUT;
 
 XBeeRadio& radio;
 Motor& motors;
+Solenoid& launcher;
 
 // enum states
 enum State {
@@ -39,7 +42,7 @@ bool orangeSeen;
 int orangeX;
 int orangeArea;
 unsigned long lastSeenTime;
-unsigned long lastSearchUpdate;
+unsigned long shotStart;
 bool searchDirRight;
 long lastSpotted;
 
@@ -56,7 +59,7 @@ double getHeadingError(double dx, double dy);
 
 
 public:
-    state_machine(XBeeRadio& r, Motor& m);    
+    state_machine(XBeeRadio& r, Motor& m, Solenoid& s);    
     void updateStateMachine();
     void stateSearchPuck();
     void stateFollowPuck();

@@ -20,22 +20,16 @@ private:
     unsigned long fireStartTime;
     unsigned long lastFireTime;
 
-    // Internal helpers
-    void triggerPing();
-    float getDistanceCm();
 
 public:
     // Constructor
-    Solenoid(int solPin);
+    Solenoid();
 
     // Setup
     void init();
 
     // Main loop update
     void update();
-
-    // Puck detection
-    bool hasPuck();
 
     // Firing control
     void fireOnce();
