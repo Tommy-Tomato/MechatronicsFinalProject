@@ -50,8 +50,8 @@ float state_machine::readPing() {
 
   float distance = pulseDuration * 0.0343f / 2.0f;
 
-  //Serial.print("ping: ");
-  //Serial.println(distance);
+  Serial.print("ping: ");
+  Serial.println(distance);
 
   return distance;
 }
@@ -171,23 +171,16 @@ void state_machine::stateFollowPuck() {
 
     // ===== raw pixel error =====
   int error = orangeX - CAM_CENTER_X;
-    // ===== raw pixel error =====
-  int error = orangeX - CAM_CENTER_X;
 
   // ===== deadband (kills jitter near center) =====
   if (abs(error) < 8) {
     error = 0;
   }
 
-  // ===== smooth error (VERY important for stability) =====
-  static float filteredError = 0;
-  filteredError = 0.8f * filteredError + 0.2f * error;
 
   // ===== speed control (slower when close) =====
-  // ===== deadband (kills jitter near center) =====
-  if (abs(error) < 8) {
-    error = 0;
-  }
+
+
 
   // ===== smooth error (VERY important for stability) =====
   static float filteredError = 0;
@@ -195,7 +188,6 @@ void state_machine::stateFollowPuck() {
 
   // ===== speed control (slower when close) =====
   if (orangeArea > CLOSE_AREA) {
-    motors.setBaseSpeed(80);
     motors.setBaseSpeed(80);
   } else {
     motors.setBaseSpeed(FAST_SPEED);
@@ -213,20 +205,6 @@ void state_machine::stateFollowPuck() {
   if (desiredHeading >= 360.0) desiredHeading -= 360.0;
 
   motors.setHeading(desiredHeading);
-
-  // ===== compute smooth heading correction =====
-  float turnCorrection = TURN_GAIN * filteredError;
-
-  // ===== compute desired absolute heading =====
-  double currentHeading = motors.getYaw() - motors.headingOffset;
-  double desiredHeading = currentHeading - turnCorrection;
-
-  // normalize [0, 360)
-  if (desiredHeading < 0) desiredHeading += 360.0;
-  if (desiredHeading >= 360.0) desiredHeading -= 360.0;
-
-  motors.setHeading(desiredHeading);
-
   motors.update();
 }
 void state_machine::stateShootPuck() {
