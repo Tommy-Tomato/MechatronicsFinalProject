@@ -216,6 +216,7 @@ void state_machine::stateShootPuck() {
 
   const int wallBuffer = 25;
   const int safeZone   = 35;
+  const double goalExclusionRadius = 25;
 
   // ===== wall detection =====
   bool inBuffer =
@@ -223,6 +224,9 @@ void state_machine::stateShootPuck() {
     (x > fieldX_max - wallBuffer) ||
     (y < fieldY_min + wallBuffer) ||
     (y > fieldY_max - wallBuffer);
+  bool nearGoal =
+  (abs(x - goalX) < goalExclusionRadius &&
+   abs(y - goalY) < goalExclusionRadius);
 
   // ===== safe zone (fully recovered) =====
   bool wellInside =
@@ -233,8 +237,9 @@ void state_machine::stateShootPuck() {
 
   static bool avoidingWall = false;
 
-  if (inBuffer) avoidingWall = true;
+  if (inBuffer && !nearGoal) avoidingWall = true;
   if (wellInside) avoidingWall = false;
+  
 
   // ===== default behavior =====
   double finalHeading = goalHeading;
@@ -293,7 +298,7 @@ bool state_machine::avoidWall() {
 
   const int wallBuffer = 25;
   const int safeZone   = 35;
-
+  const double goalExclusionRadius = 25;
   bool inBuffer =
     (x < fieldX_min + wallBuffer) ||
     (x > fieldX_max - wallBuffer) ||

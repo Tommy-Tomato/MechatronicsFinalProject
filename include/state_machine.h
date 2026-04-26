@@ -43,6 +43,7 @@ unsigned long lastSearchUpdate;
 bool searchDirRight;
 long lastSpotted;
 
+
 // === ping and goal var ===
   float pingDistance;
   float goalX, goalY;
@@ -64,3 +65,4 @@ public:
 };
 
 #endif
+
