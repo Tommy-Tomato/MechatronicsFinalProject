@@ -235,7 +235,6 @@ void state_machine::stateShootPuck() {
   motors.setHeading(desiredHeading);
   motors.update();
 
-<<<<<<< Updated upstream
   if (sqrt(pow(dx,2)+pow(dy,2)) < 30) {
     motors.stopMotors();
     Serial.println("In shooting range - stopping");
@@ -244,9 +243,6 @@ void state_machine::stateShootPuck() {
   }
 
   
-=======
-  // ===== fallback: puck lost =====
->>>>>>> Stashed changes
   if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
