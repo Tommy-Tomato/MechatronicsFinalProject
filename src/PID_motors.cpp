@@ -3,9 +3,9 @@
 // ================= CONSTRUCTOR =================
 Motor::Motor() : bno(55, 0x28, &Wire) {
     // PID gains
-    Kp = 4.5;
-    Ki = 0.2;
-    Kd = 1.5;
+    Kp = 7;
+    Ki = 0.1;
+    Kd = 0;
 
     // PID state
     setpoint = 0;

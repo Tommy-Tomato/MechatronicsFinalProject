@@ -21,11 +21,11 @@ void setup() {
 }
   
 void loop() {
-  comms.updateXBeePosition();
-  if (comms.gameStarted()) {
+  //comms.updateXBeePosition();
+  //if (comms.gameStarted()) {
     state.updateStateMachine();
-  } else {
-    motors.stopMotors();
-  }
+  //} else {
+  //  motors.stopMotors();
+  //}
 }
 
