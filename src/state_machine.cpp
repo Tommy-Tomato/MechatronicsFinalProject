@@ -238,9 +238,12 @@ void state_machine::stateShootPuck() {
 
   if (sqrt(pow(dx,2)+pow(dy,2)) < 30) {
     motors.stopMotors();
+    Serial.println("In shooting range - stopping");
     delay(2000);
+    return;
   }
 
+  
   if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
