@@ -95,8 +95,8 @@ bool state_machine::detectOrange() {
 // switches
 void state_machine::updateStateMachine() {
   radio.updateXBeePosition();  
-  Serial.print("current heading: ");
-  Serial.println(motors.getYaw() - motors.headingOffset);
+  //Serial.print("current heading: ");
+  //Serial.println(motors.getYaw() - motors.headingOffset);
 
   if (avoidWall()) {
     Serial.println("avoiding walls");  
@@ -210,8 +210,8 @@ void state_machine::stateFollowPuck() {
   motors.update();
 }
 void state_machine::stateShootPuck() {
-  Serial.println("shooting");
   radio.updateXBeePosition();
+  Serial.print("shooting!!");
 
   // ===== robot position =====
   const double* pos = radio.currentPosition();
@@ -227,15 +227,17 @@ void state_machine::stateShootPuck() {
   if (desiredHeading < 0) desiredHeading += 360.0;
   desiredHeading = 360.0 - desiredHeading;
 
-  Serial.print(" | desired: ");
-  Serial.print(desiredHeading);
+  //Serial.print(" | desired: ");
+  //Serial.print(desiredHeading);
 
   // ===== drive toward goal =====
   motors.setBaseSpeed(FAST_SPEED);
   motors.setHeading(desiredHeading);
   motors.update();
 
-  if (sqrt(pow(dx,2)+pow(dy,2)) < 30) {
+  Serial.println(sqrt(pow(dx,2)+pow(dy,2)));
+
+  if (sqrt(pow(dx,2)+pow(dy,2)) < 40) {
     motors.stopMotors();
     Serial.println("In shooting range - stopping");
     delay(2000);
