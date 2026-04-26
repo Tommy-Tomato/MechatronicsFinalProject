@@ -196,33 +196,82 @@ void state_machine::stateShootPuck() {
 
   // ===== robot position =====
   const double* pos = radio.currentPosition();
-  double robotX = pos[0];
-  double robotY = pos[1];
+  double x = pos[0];
+  double y = pos[1];
 
   // ===== vector to goal =====
-  double dx = goalX - robotX;
-  double dy = goalY - robotY;
+  double dx = goalX - x;
+  double dy = goalY - y;
 
-  // ===== field-centric desired heading =====
-  double desiredHeading = (atan2(dy, dx) * 180.0 / PI);
-  if (desiredHeading < 0) desiredHeading += 360.0;
-  desiredHeading = 360.0 - desiredHeading;
+  // ===== compute goal heading =====
+  double goalHeading = atan2(dy, dx) * 180.0 / PI;
+  if (goalHeading < 0) goalHeading += 360.0;
+  goalHeading = 360.0 - goalHeading;
 
-  Serial.print(" | desired: ");
-  Serial.print(desiredHeading);
+  // ===== wall avoidance parameters =====
+  const int fieldX_min = 8;
+  const int fieldX_max = 99;
+  const int fieldY_min = 21;
+  const int fieldY_max = 210;
 
+  const int wallBuffer = 25;
+  const int safeZone   = 35;
 
-  motors.setBaseSpeed(FAST_SPEED);
-  motors.setHeading(desiredHeading);
+  // ===== wall detection =====
+  bool inBuffer =
+    (x < fieldX_min + wallBuffer) ||
+    (x > fieldX_max - wallBuffer) ||
+    (y < fieldY_min + wallBuffer) ||
+    (y > fieldY_max - wallBuffer);
+
+  // ===== safe zone (fully recovered) =====
+  bool wellInside =
+    (x > fieldX_min + safeZone) &&
+    (x < fieldX_max - safeZone) &&
+    (y > fieldY_min + safeZone) &&
+    (y < fieldY_max - safeZone);
+
+  static bool avoidingWall = false;
+
+  if (inBuffer) avoidingWall = true;
+  if (wellInside) avoidingWall = false;
+
+  // ===== default behavior =====
+  double finalHeading = goalHeading;
+
+  if (avoidingWall) {
+    double avoidHeading = goalHeading;
+
+    if (x < fieldX_min + wallBuffer) {
+      avoidHeading = motors.headingOffset;
+    }
+    else if (x > fieldX_max - wallBuffer) {
+      avoidHeading = motors.headingOffset + 180;
+    }
+    else if (y < fieldY_min + wallBuffer) {
+      avoidHeading = motors.headingOffset + 270;
+    }
+    else if (y > fieldY_max - wallBuffer) {
+      avoidHeading = motors.headingOffset + 90;
+    }
+
+    // blend goal + escape direction
+    finalHeading = 0.3 * goalHeading + 0.7 * avoidHeading;
+    motors.setBaseSpeed(SLOW_SPEED);
+  } else {
+    motors.setBaseSpeed(FAST_SPEED);
+  }
+
+  motors.setHeading(finalHeading);
   motors.update();
 
-  if (sqrt(pow(dx,2)+pow(dy,2)) < 30) {
-    //SHOOT!
+  // ===== shoot condition =====
+  if (sqrt(dx * dx + dy * dy) < 30) {
     motors.stopMotors();
     delay(2000);
   }
 
-  // ===== fallback: puck lost =====
+  // ===== puck lost fallback =====
   if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
@@ -231,55 +280,55 @@ void state_machine::stateShootPuck() {
 
 bool state_machine::avoidWall() {
 
-  if (motors.turning) return false;
+  static bool avoiding = false;
 
   const double* pos = radio.currentPosition();
   double x = pos[0];
   double y = pos[1];
 
-  // field min and max determined by these recorded coordinates
-  // (8,21) bottom left corner
-  // (99, 22) bottom right corner
-  // (99, 211) top right corner
-  // (11, 210) top left corner
-
   const int fieldX_min = 8;
   const int fieldX_max = 99;
   const int fieldY_min = 21;
   const int fieldY_max = 210;
-  
-  const int wallBuffer = 13; // change depending on when we want to start moving away from arena walls 
-  // (this is the safe zone buffer area)
 
+  const int wallBuffer = 25;
+  const int safeZone   = 35;
+
+  bool inBuffer =
+    (x < fieldX_min + wallBuffer) ||
+    (x > fieldX_max - wallBuffer) ||
+    (y < fieldY_min + wallBuffer) ||
+    (y > fieldY_max - wallBuffer);
+
+  bool wellInside =
+    (x > fieldX_min + safeZone) &&
+    (x < fieldX_max - safeZone) &&
+    (y > fieldY_min + safeZone) &&
+    (y < fieldY_max - safeZone);
+
+  if (inBuffer) avoiding = true;
+  if (wellInside) avoiding = false;
+
+  if (!avoiding) return false;
 
   double desiredYaw = motors.getYaw();
 
-  // make heading away from closest wall
   if (x < fieldX_min + wallBuffer) {
-    desiredYaw = motors.headingOffset; // drive towards +x
-    Serial.println("min x");
-    lastSpotted = millis();
+    desiredYaw = motors.headingOffset;
   }
   else if (x > fieldX_max - wallBuffer) {
-    desiredYaw = motors.headingOffset + 180; // drive towards -x
-    Serial.println("max x");
-    lastSpotted = millis();
+    desiredYaw = motors.headingOffset + 180;
   }
   else if (y < fieldY_min + wallBuffer) {
-    desiredYaw = motors.headingOffset + 270; // drive toward +y
-    Serial.println("min y");
-    lastSpotted = millis();
+    desiredYaw = motors.headingOffset + 270;
   }
   else if (y > fieldY_max - wallBuffer) {
-    desiredYaw = motors.headingOffset + 90; // drive towards -y
-    Serial.println("max y");
-    lastSpotted = millis();
+    desiredYaw = motors.headingOffset + 90;
   }
-  else {
-    return false;
-  }
-  
+
+  motors.setBaseSpeed(SLOW_SPEED);
   motors.setHeading(desiredYaw);
   motors.update();
+
   return true;
-  }
+}
