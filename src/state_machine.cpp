@@ -50,8 +50,8 @@ float state_machine::readPing() {
 
   float distance = pulseDuration * 0.0343f / 2.0f;
 
-  Serial.print("ping: ");
-  Serial.println(distance);
+  //Serial.print("ping: ");
+  //Serial.println(distance);
 
   return distance;
 }
@@ -84,7 +84,6 @@ bool state_machine::detectOrange() {
     orangeX = pixy.ccc.blocks[bestIndex].m_x;
     orangeArea = bestArea;
     lastSeenTime = millis();
-    state = FOLLOW_PUCK;
 
     return true;
   }
@@ -105,7 +104,10 @@ void state_machine::updateStateMachine() {
   }
   
   
+  if (state != SHOOT_PUCK) {
   detectOrange();
+  }
+
   pingDistance = readPing();
 
   switch (state) {
@@ -208,21 +210,17 @@ void state_machine::stateFollowPuck() {
   motors.update();
 }
 void state_machine::stateShootPuck() {
+  Serial.println("shooting");
   radio.updateXBeePosition();
 
   // ===== robot position =====
   const double* pos = radio.currentPosition();
-  double x = pos[0];
-  double y = pos[1];
+  double robotX = pos[0];
+  double robotY = pos[1];
 
   // ===== vector to goal =====
-  double dx = goalX - x;
-  double dy = goalY - y;
-
-  // ===== compute goal heading =====
-  double goalHeading = atan2(dy, dx) * 180.0 / PI;
-  if (goalHeading < 0) goalHeading += 360.0;
-  goalHeading = 360.0 - goalHeading;
+  double dx = goalX - robotX;
+  double dy = goalY - robotY;
 
   // ===== field-centric desired heading =====
   double desiredHeading = (atan2(dy, dx) * 180.0 / PI);
@@ -232,10 +230,12 @@ void state_machine::stateShootPuck() {
   Serial.print(" | desired: ");
   Serial.print(desiredHeading);
 
+  // ===== drive toward goal =====
   motors.setBaseSpeed(FAST_SPEED);
   motors.setHeading(desiredHeading);
   motors.update();
 
+<<<<<<< Updated upstream
   if (sqrt(pow(dx,2)+pow(dy,2)) < 30) {
     motors.stopMotors();
     Serial.println("In shooting range - stopping");
@@ -244,6 +244,9 @@ void state_machine::stateShootPuck() {
   }
 
   
+=======
+  // ===== fallback: puck lost =====
+>>>>>>> Stashed changes
   if (readPing() > 15) {
     Serial.println("puck lost");
     state = SEARCH_PUCK;
