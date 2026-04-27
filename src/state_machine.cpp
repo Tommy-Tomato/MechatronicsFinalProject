@@ -26,6 +26,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m, Solenoid& s)
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
+        goal = radio.leftGoalPosition(); // left or right depending on starting position
 }
 
 // PING pings and data
@@ -160,7 +161,6 @@ void state_machine::stateFollowPuck() {
   if (pingDistance > 0 && pingDistance <= 7.5f) {
     Serial.println("puck is grabbed, going to score");
 
-    const double* goal = radio.leftGoalPosition(); // left or right depending on starting position
     goalX = goal[0];
     goalY = goal[1];
 
@@ -248,6 +248,8 @@ void state_machine::stateShootPuck() {
     Serial.println("In shooting range");
     shotStart = millis();
     digitalWrite(48,HIGH);
+    motors.stopMotors();
+    delay(5000);
     return;
   }
 
@@ -272,12 +274,21 @@ bool state_machine::avoidWall() {
   const int fieldY_max = 210;
 
   int wallBuffer = 0;
+
   if (state == SEARCH_PUCK) {
     wallBuffer = 13;
   } else {
     wallBuffer = 28;
   }
   
+  int wallBufferYmax = wallBuffer;
+  int wallBufferYmin = wallBuffer;
+
+  if (state == SHOOT_PUCK && goal[1] == 0) {
+    wallBufferYmin = 10;
+  } else if (state == SHOOT_PUCK && goal[1] == 52.5) {
+    wallBufferYmax = 10;
+  }
 
   double desiredYaw = motors.getYaw();
 
@@ -291,12 +302,13 @@ bool state_machine::avoidWall() {
     Serial.println("max x");
     lastSpotted = millis();
   }
-  else if (y < fieldY_min + wallBuffer) {
+  else if (y < fieldY_min + wallBufferYmin) {
+    
     desiredYaw = motors.headingOffset + 195;
     Serial.println("min y");
     lastSpotted = millis();
   }
-  else if (y > fieldY_max - wallBuffer) {
+  else if (y > fieldY_max - wallBufferYmax) {
     desiredYaw = motors.headingOffset + 15;
     Serial.println("max y");
     lastSpotted = millis();

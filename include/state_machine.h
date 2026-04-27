@@ -25,6 +25,7 @@ const float TURN_GAIN;      // deg of heading change per pixel error
 const float MAX_TURN_DELTA; // limit heading jump per loop
 const int CLOSE_AREA;       // stop / slow when puck is very close
 const unsigned long LOST_TIMEOUT;
+const double* goal;
 
 XBeeRadio& radio;
 Motor& motors;
