@@ -238,21 +238,20 @@ void state_machine::stateShootPuck() {
   Serial.print(sqrt(pow(dx,2)+pow(dy,2)));
   Serial.print("| error: ");
   Serial.println(abs(desiredHeading - (motors.getYaw() - motors.headingOffset)));
-  if (sqrt(pow(dx,2)+pow(dy,2)) < 55 && 
+  if (sqrt(pow(dx,2)+pow(dy,2)) < 35 && 
   abs(desiredHeading - (motors.getYaw() - motors.headingOffset)) < 25) {
     Serial.println("In shooting range");
     shotStart = millis();
     digitalWrite(48,HIGH);
     motors.stopMotors();
-    delay(5000);
-
+    
     // back up after shooting
     motors.setBaseSpeed(-100); 
-    motors.setHeading(motors.getYaw() - motors.headingOffset);
+
+    delay(2000); // make longer if want longer backup distance
+    motors.setHeading(motors.headingOffset);
     motors.update();
-    delay(500); // make longer if want longer backup distance
-    motors.stopMotors();
-    delay(200);
+    state = SEARCH_PUCK;
     return;
   }
 
