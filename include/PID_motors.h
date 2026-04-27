@@ -23,6 +23,7 @@ private:
     double turnStartYaw;
     unsigned long turnStartTime;
     double accumulatedTurn;
+    double tankTarget;
 
     // Helpers
     double angleDiff(double target, double current);
@@ -38,7 +39,7 @@ public:
     double getYaw();
 
     void initMotors();
-    void tankTurn();
+    void tankTurn(double target);
     void stopMotors();
     void update();
 

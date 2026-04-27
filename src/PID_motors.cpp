@@ -24,6 +24,7 @@ Motor::Motor() : bno(55, 0x28, &Wire) {
     turning = false;
     turnStartTime = 0;
     accumulatedTurn = 0;
+    tankTarget = 0;
     
     
 }
@@ -125,12 +126,13 @@ void Motor::resetPIDHeading() {
 }
 
 // ================= TURN CONTROL =================
-void Motor::tankTurn() {
+void Motor::tankTurn(double target) {
 
     turnStartYaw = getYaw() - headingOffset;
     turning = true;
     turnStartTime = millis();
     accumulatedTurn = 0;
+    tankTarget = target;
 }
 
 void Motor::handleTurn() {
@@ -145,7 +147,7 @@ void Motor::handleTurn() {
 
     motors.setSpeeds(-100, 100);
 
-    if (accumulatedTurn >= 340) {
+    if (accumulatedTurn >= tankTarget) {
         Serial.println("finished full scan");
         turning = false;
         resetPIDHeading();

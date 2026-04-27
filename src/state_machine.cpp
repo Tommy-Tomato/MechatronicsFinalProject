@@ -7,6 +7,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m, Solenoid& s)
     : radio(r), 
       motors(m),
       launcher(s),
+      firstGrab(true),
       lastSpotted(0),
       SIG_ORANGE(1),
       CAM_CENTER_X(158),
@@ -16,7 +17,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m, Solenoid& s)
       TURN_GAIN(0.1f),
       MAX_TURN_DELTA(15.0f),
       CLOSE_AREA(5200),
-      LOST_TIMEOUT(250),
+      LOST_TIMEOUT(200),
       state(SEARCH_PUCK),
       orangeSeen(false),
       orangeX(CAM_CENTER_X),
@@ -26,7 +27,7 @@ state_machine::state_machine(XBeeRadio& r, Motor& m, Solenoid& s)
       searchDirRight(true), 
       pingDistance(999.0f), 
       goalX(0), goalY(0){
-        goal = radio.leftGoalPosition(); // left or right depending on starting position
+      goal = radio.rightGoalPosition(); //SET THIS TO LEFT OR RIGHT DEPENDING ON GOAL 
 }
 
 // PING pings and data
@@ -140,10 +141,10 @@ void state_machine::stateSearchPuck() {
     return;
   }
     if (!motors.turning) {
-      if (millis() - lastSpotted > 5000) {
+      if (millis() - lastSpotted > 4000) {
 
         Serial.println("nothing found, turning...");
-        motors.tankTurn();
+        motors.tankTurn(340);
         lastSpotted = millis();
       } else {
         Serial.println("searching...");
@@ -210,6 +211,11 @@ void state_machine::stateFollowPuck() {
   motors.update();
 }
 void state_machine::stateShootPuck() {
+  if (firstGrab) {
+    //motors.tankTurn(170);
+    //delay(1000);
+    //motors.tankTurn(170);
+  }
   radio.updateXBeePosition();
 
   // ===== robot position =====
@@ -251,6 +257,7 @@ void state_machine::stateShootPuck() {
     delay(500); // make longer if want longer backup distance
     motors.setHeading(motors.headingOffset);
     motors.update();
+    motors.setBaseSpeed(SLOW_SPEED);
     state = SEARCH_PUCK;
     return;
   }
@@ -272,14 +279,14 @@ bool state_machine::avoidWall() {
   const int fieldX_min = 8;
   const int fieldX_max = 99;
   const int fieldY_min = 21;
-  const int fieldY_max = 210;
+  const int fieldY_max = 220;
 
   int wallBuffer = 0;
 
   if (state == SEARCH_PUCK) {
-    wallBuffer = 13;
+    wallBuffer = 18;
   } else {
-    wallBuffer = 28;
+    wallBuffer = 25;
   }
   
   int wallBufferYmax = wallBuffer;
@@ -294,23 +301,23 @@ bool state_machine::avoidWall() {
   double desiredYaw = motors.getYaw();
 
   if (x < fieldX_min + wallBuffer) {
-    desiredYaw = motors.headingOffset + 285;
+    desiredYaw = motors.headingOffset + 300;
     Serial.println("min x");
     lastSpotted = millis();
   }
   else if (x > fieldX_max - wallBuffer) {
-    desiredYaw = motors.headingOffset + 105;
+    desiredYaw = motors.headingOffset + 120;
     Serial.println("max x");
     lastSpotted = millis();
   }
   else if (y < fieldY_min + wallBufferYmin) {
     
-    desiredYaw = motors.headingOffset + 195;
+    desiredYaw = motors.headingOffset + 210;
     Serial.println("min y");
     lastSpotted = millis();
   }
   else if (y > fieldY_max - wallBufferYmax) {
-    desiredYaw = motors.headingOffset + 15;
+    desiredYaw = motors.headingOffset + 30;
     Serial.println("max y");
     lastSpotted = millis();
   }

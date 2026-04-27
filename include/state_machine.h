@@ -48,6 +48,7 @@ bool searchDirRight;
 long lastSpotted;
 
 
+
 // === ping and goal var ===
   float pingDistance;
   float goalX, goalY;
@@ -60,6 +61,7 @@ double getHeadingError(double dx, double dy);
 
 
 public:
+    bool firstGrab;
     state_machine(XBeeRadio& r, Motor& m, Solenoid& s);    
     void updateStateMachine();
     void stateSearchPuck();
