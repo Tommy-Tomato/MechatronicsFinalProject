@@ -184,11 +184,6 @@ void state_machine::stateFollowPuck() {
     error = 0;
   }
 
-
-  // ===== speed control (slower when close) =====
-
-
-
   // ===== smooth error (VERY important for stability) =====
   static float filteredError = 0;
   filteredError = 0.8f * filteredError + 0.2f * error;
@@ -250,6 +245,14 @@ void state_machine::stateShootPuck() {
     digitalWrite(48,HIGH);
     motors.stopMotors();
     delay(5000);
+
+    // back up after shooting
+    motors.setBaseSpeed(-100); 
+    motors.setHeading(motors.getYaw() - motors.headingOffset);
+    motors.update();
+    delay(500); // make longer if want longer backup distance
+    motors.stopMotors();
+    delay(200);
     return;
   }
 
