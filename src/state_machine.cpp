@@ -140,7 +140,7 @@ void state_machine::stateSearchPuck() {
     return;
   }
     if (!motors.turning) {
-      if (millis() - lastSpotted > 6500) {
+      if (millis() - lastSpotted > 5000) {
 
         Serial.println("nothing found, turning...");
         motors.tankTurn();
@@ -248,13 +248,12 @@ void state_machine::stateShootPuck() {
     // back up after shooting
     motors.setBaseSpeed(-100); 
 
-    delay(2000); // make longer if want longer backup distance
+    delay(500); // make longer if want longer backup distance
     motors.setHeading(motors.headingOffset);
     motors.update();
     state = SEARCH_PUCK;
     return;
   }
-
   
   if (readPing() > 15) {
     Serial.println("puck lost");
